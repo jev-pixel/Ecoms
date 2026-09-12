@@ -181,6 +181,33 @@ LOGIN_REDIRECT_URL = '/shop/'
 LOGOUT_REDIRECT_URL = '/shop/'
 
 # ------------------------------
+# LOGGING
+# ------------------------------
+# Django's built-in default logging suppresses console output for request
+# errors when DEBUG=False (the default 'console' handler is filtered to
+# require_debug_true). Without this override, 500 errors vanish silently
+# instead of appearing in `docker compose logs` / Vercel's Runtime Logs.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
+# ------------------------------
 # SESSION SETTINGS
 # ------------------------------
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
