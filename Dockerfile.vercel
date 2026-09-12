@@ -1,0 +1,29 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential libpq-dev libjpeg-dev zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# collectstatic only needs settings to import cleanly — no real DB/secret
+# needed at build time, so use throwaway values just for this step.
+RUN SECRET_KEY=build-time-placeholder \
+    DEBUG=False \
+    ALLOWED_HOSTS=localhost \
+    DATABASE_URL=sqlite:///build.sqlite3 \
+    python manage.py collectstatic --noinput
+
+EXPOSE 8000
+
+# Vercel injects $PORT; gunicorn binds to it. No migrate here on purpose —
+# run migrations manually against production DATABASE_URL (step 7 below).
+CMD ["sh", "-c", "gunicorn ecommerce.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3"]

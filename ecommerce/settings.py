@@ -27,7 +27,7 @@ env.read_env(BASE_DIR / '.env')
 SECRET_KEY = env('SECRET_KEY')  # no default on purpose — app should fail to start without one
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 # ------------------------------
 # INSTALLED APPS
 # ------------------------------
@@ -156,6 +156,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Only for local/demo testing (e.g. via docker compose or ngrok) — real
 # production should serve media from S3/Cloudinary instead.
 SERVE_MEDIA_LOCALLY = env.bool('SERVE_MEDIA_LOCALLY', default=False)
+
+# ------------------------------
+# MEDIA STORAGE BACKEND (Vercel Blob in production)
+# ------------------------------
+USE_VERCEL_BLOB = env.bool('USE_VERCEL_BLOB', default=False)
+VERCEL_BLOB_PUBLIC_BASE_URL = env('VERCEL_BLOB_PUBLIC_BASE_URL', default='')
+
+if USE_VERCEL_BLOB:
+    STORAGES = {
+        "default": {"BACKEND": "shop.storage_backends.VercelBlobStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
 # ------------------------------
 # DEFAULT PRIMARY KEY
 # ------------------------------
