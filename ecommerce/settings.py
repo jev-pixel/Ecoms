@@ -142,7 +142,6 @@ USE_I18N = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ------------------------------
 # MEDIA FILES (user-uploaded product images)
@@ -165,9 +164,14 @@ VERCEL_BLOB_PUBLIC_BASE_URL = env('VERCEL_BLOB_PUBLIC_BASE_URL', default='')
 
 if USE_VERCEL_BLOB:
     STORAGES = {
-        "default": {"BACKEND": "shop.storage_backends.VercelBlobStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-    }
+    "default": {
+        "BACKEND": "shop.storage_backends.VercelBlobStorage" if USE_VERCEL_BLOB
+        else "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 # ------------------------------
 # DEFAULT PRIMARY KEY
 # ------------------------------
