@@ -152,8 +152,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # to survive redeploys, swap this for django-storages + S3/Cloudinary later.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 # Only for local/demo testing (e.g. via docker compose or ngrok) — real
-# production should serve media from S3/Cloudinary instead, per the note above.
+# production should serve media from S3/Cloudinary instead.
 SERVE_MEDIA_LOCALLY = env.bool('SERVE_MEDIA_LOCALLY', default=False)
 # ------------------------------
 # DEFAULT PRIMARY KEY

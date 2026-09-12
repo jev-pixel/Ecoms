@@ -1,7 +1,8 @@
 # ecommerce/urls.py
 
 from django.conf import settings
-from django.conf.urls.static import static
+from django.urls import re_path
+from django.views.static import serve
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
@@ -31,4 +32,6 @@ urlpatterns = [
 # In production, WhiteNoise handles static files; media (user uploads)
 # should go through a cloud storage backend (see settings.py note).
 if settings.DEBUG or settings.SERVE_MEDIA_LOCALLY:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
