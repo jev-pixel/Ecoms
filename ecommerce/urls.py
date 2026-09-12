@@ -30,5 +30,5 @@ urlpatterns = [
 # Serve media files in development only.
 # In production, WhiteNoise handles static files; media (user uploads)
 # should go through a cloud storage backend (see settings.py note).
-if settings.DEBUG:
+if settings.DEBUG or settings.SERVE_MEDIA_LOCALLY:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
