@@ -13,7 +13,6 @@ urlpatterns = [
     path('products/category/<slug:category_slug>/', views.product_list, name='product_list_by_category'),
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),
     path('search/', views.search, name='search'),
-    path('api-products/', views.api_products, name='api_products'),
     
     # ==================== CART ====================
     path('cart/', views.view_cart, name='view_cart'),

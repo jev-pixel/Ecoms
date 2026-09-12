@@ -7,7 +7,6 @@ from django.db.models import Q, Count, Avg, F
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils import timezone
-from .api_service import ECommerceAPI
 from django.contrib.auth.models import User
 from decimal import Decimal
 from .models import (
