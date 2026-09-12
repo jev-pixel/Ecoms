@@ -162,7 +162,7 @@ SERVE_MEDIA_LOCALLY = env.bool('SERVE_MEDIA_LOCALLY', default=False)
 USE_VERCEL_BLOB = env.bool('USE_VERCEL_BLOB', default=False)
 VERCEL_BLOB_PUBLIC_BASE_URL = env('VERCEL_BLOB_PUBLIC_BASE_URL', default='')
 
-if USE_VERCEL_BLOB:
+
     STORAGES = {
     "default": {
         "BACKEND": "shop.storage_backends.VercelBlobStorage" if USE_VERCEL_BLOB
