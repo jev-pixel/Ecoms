@@ -1,0 +1,46 @@
+<!-- File: D:\Ecom\shop\templates\shop\api_order_success.html -->
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h1 class="mb-3">Order Placed Successfully!</h1>
+                    <p class="lead">Your order <strong>#{{ order_id }}</strong> has been confirmed.</p>
+                    
+                    {% if order %}
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5>Order Details</h5>
+                            <p class="mb-1"><strong>Customer:</strong> {{ order.customer_name }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ order.customer_email }}</p>
+                            <p class="mb-1"><strong>Total:</strong> ${{ order.total_amount }}</p>
+                            <p class="mb-0"><strong>Status:</strong> <span class="badge bg-warning">{{ order.status }}</span></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <p class="text-muted mb-4">
+                        <i class="fas fa-envelope"></i> We'll send you an email confirmation shortly.
+                    </p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'shop:api_product_list' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shopping-bag"></i> Continue Shopping
+                        </a>
+                        <a href="{% url 'shop:api_transactions' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-receipt"></i> View All Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

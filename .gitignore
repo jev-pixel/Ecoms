@@ -1,0 +1,34 @@
+# Environments & secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Django
+*.db
+*.sqlite3
+*.sqlite3-journal
+*.log
+staticfiles/
+media/
+
+# Leftover FastAPI experiment — not part of the Django app
+api_backend/
+
+# Unrelated large folder accidentally inside the project directory
+Programs/
+
+# Stray/junk files
+del
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

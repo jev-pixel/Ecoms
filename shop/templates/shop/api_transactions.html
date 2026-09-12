@@ -1,0 +1,81 @@
+<!-- File: D:\Ecom\shop\templates\shop\api_transactions.html -->
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fas fa-receipt"></i> Order History</h1>
+
+    {% if transactions %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td><strong>#{{ transaction.order_id }}</strong></td>
+                            <td>{{ transaction.customer_name }}</td>
+                            <td>{{ transaction.customer_email }}</td>
+                            <td>{{ transaction.item_count }}</td>
+                            <td><strong>${{ transaction.total_amount }}</strong></td>
+                            <td>
+                                <span class="badge 
+                                    {% if transaction.status == 'completed' %}bg-success
+                                    {% elif transaction.status == 'pending' %}bg-warning
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ transaction.status }}
+                                </span>
+                            </td>
+                            <td>{{ transaction.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    {% if user.is_staff %}
+                                    <form method="post" action="{% url 'shop:api_update_order_status' transaction.order_id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="completed">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Mark as Completed">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'shop:api_delete_order' transaction.order_id %}" class="d-inline" 
+                                          onsubmit="return confirm('Are you sure you want to delete this order?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Order">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-receipt fa-5x text-muted mb-4"></i>
+        <h3>No orders yet</h3>
+        <p class="text-muted">Start shopping to see your orders here!</p>
+        <a href="{% url 'shop:api_product_list' %}" class="btn btn-primary btn-lg mt-3">
+            <i class="fas fa-shopping-bag"></i> Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

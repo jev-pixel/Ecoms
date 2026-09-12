@@ -1,0 +1,16 @@
+{% for category in categories %}
+  <h2>{{ category.name }}</h2>
+
+  {% if category.products.all %}
+    <ul>
+      {% for product in category.products.all %}
+        <li>
+          {{ product.name }} - ${{ product.price }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No products in this category.</p>
+  {% endif %}
+
+{% endfor %}

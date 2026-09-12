@@ -1,0 +1,79 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{% if selected_category %}{{ selected_category.name }}{% else %}All Products{% endif %} — Daboss Motor Shop{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding-top: var(--space-7); padding-bottom: var(--space-4);">
+  <h1 style="font-size: clamp(30px, 4vw, 44px);">{% if selected_category %}{{ selected_category.name }}{% else %}All products{% endif %}</h1>
+  {% if search_query %}<p>Results for &ldquo;{{ search_query }}&rdquo;</p>{% endif %}
+</section>
+
+<div class="container">
+  <form method="get" style="max-width:420px;margin:0 auto var(--space-6);display:flex;gap:var(--space-2);">
+    <input type="text" name="q" value="{{ search_query }}" placeholder="Search products"
+           style="flex:1;padding:10px 16px;border:1px solid var(--color-border);border-radius:var(--radius-pill);font-size:14px;">
+    <button type="submit" class="btn btn-secondary" style="padding:10px 18px;">Search</button>
+  </form>
+
+  <div class="filters-bar">
+    <div class="filter-pills">
+      <a href="{% url 'shop:product_list' %}" class="filter-pill {% if not selected_category %}active{% endif %}">All</a>
+      {% for cat in categories %}
+        <a href="{% url 'shop:product_list_by_category' cat.slug %}"
+           class="filter-pill {% if selected_category and selected_category.slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+
+    <form method="get" style="display:flex;gap:var(--space-2);align-items:center;">
+      {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+      {% if brands %}
+      <select name="brand" class="select-control" onchange="this.form.submit()">
+        <option value="">All brands</option>
+        {% for brand in brands %}
+          {% if brand %}<option value="{{ brand }}">{{ brand }}</option>{% endif %}
+        {% endfor %}
+      </select>
+      {% endif %}
+      <select name="sort" class="select-control" onchange="this.form.submit()">
+        <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest</option>
+        <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Price: low to high</option>
+        <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>Price: high to low</option>
+        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name: A–Z</option>
+      </select>
+    </form>
+  </div>
+
+  {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+        {% include 'shop/_product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+
+    {% if products.has_other_pages %}
+      <div class="pagination">
+        {% if products.has_previous %}
+          <a href="?page={{ products.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">&lsaquo;</a>
+        {% endif %}
+        {% for num in products.paginator.page_range %}
+          {% if num == products.number %}
+            <span class="current">{{ num }}</span>
+          {% else %}
+            <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if products.has_next %}
+          <a href="?page={{ products.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">&rsaquo;</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <h2>No products found</h2>
+      <p>Try a different search term or browse another category.</p>
+      <a href="{% url 'shop:product_list' %}" class="btn btn-primary">View all products</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

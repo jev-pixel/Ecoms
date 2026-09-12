@@ -1,0 +1,88 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- API Status Banner -->
+    <div class="alert {% if api_status == 'connected' %}alert-success{% else %}alert-danger{% endif %} mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas {% if api_status == 'connected' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %} fa-2x me-3"></i>
+            <div>
+                <h5 class="mb-0">
+                    {% if api_status == 'connected' %}
+                        ✅ Connected to FastAPI Backend
+                    {% else %}
+                        ⚠️ FastAPI Backend Not Running
+                    {% endif %}
+                </h5>
+                <small>Backend API: http://localhost:8000 | Frontend: http://localhost:8080</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4">🛍️ E-Commerce Shop</h1>
+        <p class="lead">Django Frontend + FastAPI Backend Integration</p>
+        <div class="btn-group mt-3">
+            <a href="{% url 'shop:api_product_list' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag"></i> Browse All Products
+            </a>
+            <a href="{% url 'shop:api_view_cart' %}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-shopping-cart"></i> View Cart
+            </a>
+            <a href="{% url 'shop:api_transactions' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-receipt"></i> Orders
+            </a>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <h2 class="mb-4">Featured Products</h2>
+    {% if products %}
+    <div class="row g-4">
+        {% for product in products %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-laptop text-white" style="font-size: 4rem;"></i>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text text-muted">{{ product.description|truncatewords:10 }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="h4 text-primary mb-0">${{ product.price }}</span>
+                        <span class="badge bg-secondary">Stock: {{ product.stock }}</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'shop:api_product_detail' product.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a href="{% url 'shop:api_add_to_cart' product.id %}" class="btn btn-primary">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle"></i> No products available. 
+        {% if api_status != 'connected' %}
+        <br><strong>Make sure FastAPI is running on port 8000!</strong>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- View All Link -->
+    {% if products %}
+    <div class="text-center mt-4">
+        <a href="{% url 'shop:api_product_list' %}" class="btn btn-lg btn-primary">
+            View All Products <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

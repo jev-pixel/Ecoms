@@ -1,0 +1,132 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} — Daboss Motor Shop{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="product-detail">
+    <div class="product-detail-image">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        <img src="{% static 'img/no-image.png' %}" alt="{{ product.name }}">
+      {% endif %}
+    </div>
+
+    <div class="product-detail-panel">
+      <div class="breadcrumb">
+        <a href="{% url 'shop:product_list' %}">Products</a>
+        {% if product.category %} &rsaquo; <a href="{% url 'shop:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a>{% endif %}
+      </div>
+
+      <h1>{{ product.name }}</h1>
+
+      {% if product.average_rating %}
+        <div class="review-item" style="border:none;padding:0;margin-bottom:var(--space-3);">
+          <span class="stars">&#9733; {{ product.average_rating|floatformat:1 }}</span>
+          <span style="color:var(--color-text-secondary);font-size:14px;"> &middot; {{ reviews.count }} review{{ reviews.count|pluralize }}</span>
+        </div>
+      {% endif %}
+
+      <div class="product-detail-price">
+        &#8369;{{ product.price }}
+        {% if product.is_on_sale %}
+          <span class="old-price" style="font-size:16px;">&#8369;{{ product.compare_price }}</span>
+        {% endif %}
+      </div>
+
+      <p class="product-detail-desc">{{ product.description }}</p>
+
+      {% if product.stock == 0 %}
+        <span class="stock-pill out" style="margin-bottom:var(--space-6);">Out of stock</span><br>
+        <button class="btn btn-primary btn-block" disabled>Out of stock</button>
+      {% elif request.user.is_authenticated %}
+        <form action="{% url 'shop:add_to_cart' product.id %}" method="POST" id="addToCartForm">
+          {% csrf_token %}
+          <div class="product-form-row">
+            <div class="qty-stepper">
+              <button type="button" onclick="stepQty(-1)">&minus;</button>
+              <input type="number" name="quantity" id="qtyInput" value="1" min="1" max="{{ product.stock }}">
+              <button type="button" onclick="stepQty(1)">&plus;</button>
+            </div>
+            <span style="color:var(--color-text-secondary);font-size:14px;">{{ product.stock }} available</span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Add to cart</button>
+        </form>
+      {% else %}
+        <a href="{% url 'shop:login' %}?next={% url 'shop:product_detail' product.id %}" class="btn btn-primary btn-block">Sign in to purchase</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <section style="max-width:720px;">
+    <h2 style="font-size:24px;margin-bottom:var(--space-5);">Reviews</h2>
+
+    {% if request.user.is_authenticated and user_purchased and not user_reviewed %}
+      <form method="POST" style="margin-bottom:var(--space-7);">
+        {% csrf_token %}
+        <div class="field">
+          <label for="rating">Rating</label>
+          <select name="rating" id="rating" required>
+            <option value="5">5 — Excellent</option>
+            <option value="4">4 — Good</option>
+            <option value="3">3 — Average</option>
+            <option value="2">2 — Below average</option>
+            <option value="1">1 — Poor</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="title">Title</label>
+          <input type="text" name="title" id="title" placeholder="Sum up your experience">
+        </div>
+        <div class="field">
+          <label for="comment">Comment</label>
+          <textarea name="comment" id="comment" required placeholder="What did you think?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit review</button>
+      </form>
+    {% elif request.user.is_authenticated and user_reviewed %}
+      <p style="color:var(--color-text-secondary);margin-bottom:var(--space-6);">You've already reviewed this product.</p>
+    {% endif %}
+
+    {% for review in reviews %}
+      <div class="review-item">
+        <div class="stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</div>
+        {% if review.title %}<strong>{{ review.title }}</strong>{% endif %}
+        <p style="margin:var(--space-2) 0;color:var(--color-text-secondary);">{{ review.comment }}</p>
+        <span style="font-size:12px;color:var(--color-text-secondary);">{{ review.user.username }} &middot; {{ review.created_at|date:"M d, Y" }}</span>
+      </div>
+    {% empty %}
+      <p style="color:var(--color-text-secondary);">No reviews yet.</p>
+    {% endfor %}
+  </section>
+
+  {% if related_products %}
+  <section class="section">
+    <div class="section-header"><h2>You may also like</h2></div>
+    <div class="product-grid">
+      {% for product in related_products %}
+        {% include 'shop/_product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function stepQty(delta) {
+    var input = document.getElementById('qtyInput');
+    var max = parseInt(input.max || 999, 10);
+    var next = parseInt(input.value || 1, 10) + delta;
+    if (next < 1) next = 1;
+    if (next > max) next = max;
+    input.value = next;
+  }
+</script>
+{% endblock %}

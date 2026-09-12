@@ -1,0 +1,65 @@
+<!-- File: D:\Ecom\shop\templates\shop\api_product_detail.html -->
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shop:api_home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shop:api_product_list' %}">Products</a></li>
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center bg-gradient" style="height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-laptop text-white" style="font-size: 8rem;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h1 class="display-5 mb-3">{{ product.name }}</h1>
+            <span class="badge bg-info mb-3">{{ product.category }}</span>
+            
+            <p class="lead text-muted">{{ product.description }}</p>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">Price:</span>
+                        <h2 class="text-primary mb-0">${{ product.price }}</h2>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Availability:</span>
+                        <span class="badge {% if product.stock > 10 %}bg-success{% elif product.stock > 0 %}bg-warning{% else %}bg-danger{% endif %} fs-6">
+                            {% if product.stock > 0 %}
+                                ✅ In Stock ({{ product.stock }} available)
+                            {% else %}
+                                ❌ Out of Stock
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-3">
+                {% if product.stock > 0 %}
+                <a href="{% url 'shop:api_add_to_cart' product.id %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </a>
+                {% else %}
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-times"></i> Out of Stock
+                </button>
+                {% endif %}
+                <a href="{% url 'shop:api_product_list' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,552 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="title-wrapper">
+                        <div class="icon-badge">
+                            <i class="bi bi-grid-3x3-gap-fill"></i>
+                        </div>
+                        <div>
+                            <h1 class="main-title">{{ source }}</h1>
+                            <p class="subtitle">
+                                <span class="status-dot"></span>
+                                Live from FastAPI:5000
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ products|length }}</div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="container products-container">
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="card-glow"></div>
+                <div class="card-inner">
+                    <!-- Card Header -->
+                    <div class="card-header-section">
+                        <div class="category-badge">
+                            <span class="badge-dot"></span>
+                            {{ product.category }}
+                        </div>
+                        <div class="stock-indicator {% if product.stock > 50 %}high{% elif product.stock > 20 %}medium{% else %}low{% endif %}">
+                            <div class="stock-bar">
+                            </div>
+                            <span class="stock-text">{{ product.stock }} units</span>
+                        </div>
+                    </div>
+
+                    <!-- Product Name -->
+                    <h3 class="product-name">{{ product.name }}</h3>
+
+                    <!-- Description -->
+                    <p class="product-description">{{ product.description }}</p>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer-section">
+                        <div class="price-section">
+                            <span class="price-label">Price</span>
+                            <div class="price-value">
+                                <span class="currency">$</span>
+                                <span class="amount">{{ product.price }}</span>
+                            </div>
+                        </div>
+                        <button class="action-btn">
+                            <span>Explore</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h3>No Products Found</h3>
+                <p>Ensure FastAPI is running on port 5000</p>
+                <button class="retry-btn">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Retry Connection
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .dashboard-wrapper {
+        min-height: 100vh;
+        background: #0a0e27;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Animated Background */
+    .animated-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .bg-shape {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.15;
+        animation: float 20s infinite ease-in-out;
+    }
+
+    .shape-1 {
+        width: 500px;
+        height: 500px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        top: -250px;
+        left: -250px;
+        animation-delay: 0s;
+    }
+
+    .shape-2 {
+        width: 400px;
+        height: 400px;
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        bottom: -200px;
+        right: -200px;
+        animation-delay: 7s;
+    }
+
+    .shape-3 {
+        width: 350px;
+        height: 350px;
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        top: 50%;
+        left: 50%;
+        animation-delay: 14s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(100px, -100px) rotate(120deg); }
+        66% { transform: translate(-50px, 100px) rotate(240deg); }
+    }
+
+    /* Header */
+    .dashboard-header {
+        position: relative;
+        z-index: 10;
+        padding: 3rem 0 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 2rem;
+    }
+
+    .title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .icon-badge {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+
+    .main-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffffff, #a0aec0);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+        color: #718096;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        background: #48bb78;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem 2.5rem;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+        color: #a0aec0;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Products Container */
+    .products-container {
+        position: relative;
+        z-index: 10;
+        padding: 3rem 15px;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+    }
+
+    /* Product Card */
+    .product-card {
+        position: relative;
+        border-radius: 20px;
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .product-card:hover {
+        transform: translateY(-12px);
+    }
+
+    .card-glow {
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+        border-radius: 20px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: -1;
+    }
+
+    .product-card:hover .card-glow {
+        opacity: 1;
+        animation: rotate-gradient 3s linear infinite;
+    }
+
+    @keyframes rotate-gradient {
+        0% { filter: hue-rotate(0deg); }
+        100% { filter: hue-rotate(360deg); }
+    }
+
+    .card-inner {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-inner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at top right, rgba(102, 126, 234, 0.1), transparent 50%);
+        pointer-events: none;
+    }
+
+    /* Card Header */
+    .card-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(102, 126, 234, 0.15);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 12px;
+        color: #a5b4fc;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-dot {
+        width: 6px;
+        height: 6px;
+        background: #667eea;
+        border-radius: 50%;
+    }
+
+    .stock-indicator {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 100px;
+    }
+
+    .stock-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .stock-fill {
+        height: 100%;
+        transition: width 0.5s ease;
+        border-radius: 4px;
+    }
+
+    .stock-indicator.high .stock-fill {
+        background: linear-gradient(90deg, #48bb78, #38a169);
+    }
+
+    .stock-indicator.medium .stock-fill {
+        background: linear-gradient(90deg, #ed8936, #dd6b20);
+    }
+
+    .stock-indicator.low .stock-fill {
+        background: linear-gradient(90deg, #f56565, #e53e3e);
+    }
+
+    .stock-text {
+        font-size: 0.75rem;
+        color: #a0aec0;
+    }
+
+    /* Product Content */
+    .product-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .product-description {
+        color: #a0aec0;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        flex-grow: 1;
+    }
+
+    /* Card Footer */
+    .card-footer-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .price-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .price-label {
+        font-size: 0.75rem;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .price-value {
+        display: flex;
+        align-items: baseline;
+        gap: 0.25rem;
+    }
+
+    .currency {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    .amount {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .action-btn:hover {
+        transform: translateX(4px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .action-btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .action-btn:hover i {
+        transform: translateX(4px);
+    }
+
+    /* Empty State */
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #4a5568;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: #ffffff;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #a0aec0;
+        margin-bottom: 2rem;
+    }
+
+    .retry-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        background: rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(102, 126, 234, 0.4);
+        border-radius: 12px;
+        color: #a5b4fc;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .retry-btn:hover {
+        background: rgba(102, 126, 234, 0.3);
+        border-color: rgba(102, 126, 234, 0.6);
+        transform: scale(1.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .main-title {
+            font-size: 1.75rem;
+        }
+
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stat-card {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

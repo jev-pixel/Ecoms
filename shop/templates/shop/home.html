@@ -1,0 +1,94 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Daboss Motor Shop{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <h1>Instruments worth playing.</h1>
+  <p>A carefully chosen collection of guitars, keyboards, and studio gear — picked for tone, not just spec sheets.</p>
+  <div class="hero-actions">
+    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Shop all products</a>
+    {% if categories %}
+      <a href="#categories" class="btn btn-secondary">Browse by category</a>
+    {% endif %}
+  </div>
+</section>
+
+{% if categories %}
+<section class="section" id="categories">
+  <div class="container">
+    <div class="section-header">
+      <h2>Shop by category</h2>
+    </div>
+    <div class="category-grid">
+      {% for cat in categories %}
+        <a href="{% url 'shop:product_list_by_category' cat.slug %}" class="category-tile">
+          {% if cat.image %}
+            <img src="{{ cat.image.url }}" alt="{{ cat.name }}">
+          {% else %}
+            <img src="{% static 'img/musicbg.png' %}" alt="{{ cat.name }}">
+          {% endif %}
+          <span class="category-tile-label">{{ cat.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if featured_products %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Featured</h2>
+      <a href="{% url 'shop:product_list' %}" class="link-chevron">See all &rsaquo;</a>
+    </div>
+    <div class="product-grid">
+      {% for product in featured_products %}
+        {% include 'shop/_product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if sale_products %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>On sale</h2>
+    </div>
+    <div class="product-grid">
+      {% for product in sale_products %}
+        {% include 'shop/_product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if latest_products %}
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>New arrivals</h2>
+    </div>
+    <div class="product-grid">
+      {% for product in latest_products %}
+        {% include 'shop/_product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if not featured_products and not latest_products and not categories %}
+<section class="empty-state">
+  <h2>Nothing here yet</h2>
+  <p>Products and categories will appear here once they're added from the admin panel.</p>
+</section>
+{% endif %}
+
+{% endblock %}

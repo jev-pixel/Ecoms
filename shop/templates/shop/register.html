@@ -1,0 +1,78 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Create Account — Daboss Motor Shop{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <p class="auth-subtitle">Join Daboss Motor Shop to start shopping</p>
+
+    <form method="POST" action="{% url 'shop:register' %}" id="registerForm">
+      {% csrf_token %}
+      <div class="field">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" required autofocus minlength="3" maxlength="150" placeholder="Choose a username">
+      </div>
+      <div class="field">
+        <label for="id_email">Email address</label>
+        <input type="email" name="email" id="id_email" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="id_full_name">Full name</label>
+        <input type="text" name="full_name" id="id_full_name" required placeholder="Juan Dela Cruz">
+      </div>
+      <div class="field">
+        <label for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" required minlength="8" placeholder="At least 8 characters">
+      </div>
+      <div class="field">
+        <label for="id_password_confirm">Confirm password</label>
+        <input type="password" name="password_confirm" id="id_password_confirm" required placeholder="Re-enter your password">
+        <small id="passwordMatch" style="font-size:12px;"></small>
+      </div>
+      <div class="checkbox-row" style="margin-bottom: var(--space-5);">
+        <input type="checkbox" name="terms" id="terms" required>
+        <label for="terms" style="margin:0;">I agree to the Terms of Service and Privacy Policy</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+
+    <div class="auth-footer-link">
+      Already have an account? <a href="{% url 'shop:login' %}">Sign in</a>
+    </div>
+    <div class="auth-footer-link">
+      <a href="{% url 'shop:home' %}">&larr; Back to home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  var pw = document.getElementById('id_password');
+  var pwConfirm = document.getElementById('id_password_confirm');
+  var matchLabel = document.getElementById('passwordMatch');
+
+  function checkMatch() {
+    if (!pwConfirm.value) { matchLabel.textContent = ''; return; }
+    if (pw.value === pwConfirm.value) {
+      matchLabel.style.color = 'var(--color-success)';
+      matchLabel.textContent = 'Passwords match';
+    } else {
+      matchLabel.style.color = 'var(--color-danger)';
+      matchLabel.textContent = 'Passwords do not match';
+    }
+  }
+  pw.addEventListener('input', checkMatch);
+  pwConfirm.addEventListener('input', checkMatch);
+
+  document.getElementById('registerForm').addEventListener('submit', function (e) {
+    if (pw.value !== pwConfirm.value) {
+      e.preventDefault();
+      alert('Passwords do not match!');
+    }
+  });
+</script>
+{% endblock %}

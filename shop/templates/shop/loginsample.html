@@ -1,0 +1,728 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Serotonin Music Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Split Screen Layout */
+    .split-container {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      min-height: 100vh;
+    }
+
+    /* LEFT SIDE - Immersive Hero with Features */
+    .hero-side {
+      background: 
+        linear-gradient(135deg, rgba(233,69,96,0.95) 0%, rgba(199,44,72,0.95) 100%),
+        url('{% static "img/categories/nikebg5.jpg" %}') center/cover;
+      padding: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    /* Animated background pattern */
+    .hero-side::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 35px,
+        rgba(255,255,255,0.03) 35px,
+        rgba(255,255,255,0.03) 70px
+      );
+      animation: slidePattern 20s linear infinite;
+    }
+
+    @keyframes slidePattern {
+      0% { transform: translateX(0) translateY(0); }
+      100% { transform: translateX(70px) translateY(70px); }
+    }
+
+    /* Floating musical notes */
+    .musical-note {
+      position: absolute;
+      font-size: 40px;
+      color: rgba(255,255,255,0.1);
+      animation: floatUp 15s linear infinite;
+      pointer-events: none;
+    }
+
+    .musical-note:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
+    .musical-note:nth-child(2) { left: 30%; animation-delay: 3s; animation-duration: 15s; }
+    .musical-note:nth-child(3) { left: 50%; animation-delay: 1s; animation-duration: 18s; }
+    .musical-note:nth-child(4) { left: 70%; animation-delay: 4s; animation-duration: 13s; }
+    .musical-note:nth-child(5) { left: 85%; animation-delay: 2s; animation-duration: 16s; }
+
+    @keyframes floatUp {
+      0% {
+        bottom: -50px;
+        opacity: 0;
+        transform: translateX(0) rotate(0deg);
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        bottom: 110%;
+        opacity: 0;
+        transform: translateX(50px) rotate(360deg);
+      }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 600px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 40px;
+    }
+
+    .brand-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .hero-title {
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 25px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      line-height: 1.6;
+      margin-bottom: 50px;
+      opacity: 0.95;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Feature Pills */
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 50px;
+    }
+
+    .feature-pill {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      padding: 12px 24px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+
+    .feature-pill:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+
+    .feature-pill i {
+      font-size: 20px;
+    }
+
+    /* Trust Indicators */
+    .trust-section {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+      padding-top: 30px;
+      border-top: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .trust-item {
+      text-align: center;
+    }
+
+    .trust-number {
+      font-size: 36px;
+      font-weight: 900;
+      margin-bottom: 5px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .trust-label {
+      font-size: 13px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    /* RIGHT SIDE - Login Form */
+    .form-side {
+      background: #ffffff;
+      padding: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .form-header {
+      margin-bottom: 40px;
+    }
+
+    .form-header h2 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 10px;
+    }
+
+    .form-header p {
+      font-size: 16px;
+      color: #666;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 10px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 16px 20px 16px 55px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: all 0.3s;
+      background: #f8f9fa;
+      color: #1a1a2e;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #e94560;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(233,69,96,0.1);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #e94560;
+      font-size: 20px;
+    }
+
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .form-check-input {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #f8f9fa;
+    }
+
+    .form-check-input:checked {
+      background-color: #e94560;
+      border-color: #e94560;
+    }
+
+    .form-check-label {
+      font-size: 14px;
+      color: #666;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, #e94560 0%, #c72c48 100%);
+      color: #fff;
+      border: none;
+      padding: 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 5px 20px rgba(233,69,96,0.3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(233,69,96,0.5);
+    }
+
+    .forgot-password {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .forgot-password a {
+      color: #e94560;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+
+    .forgot-password a:hover {
+      color: #c72c48;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 35px 0;
+      color: #999;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: #e0e0e0;
+    }
+
+    .divider::before {
+      margin-right: 20px;
+    }
+
+    .divider::after {
+      margin-left: 20px;
+    }
+
+    .btn-register {
+      width: 100%;
+      background: #fff;
+      border: 2px solid #e94560;
+      color: #e94560;
+      padding: 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-register:hover {
+      background: #e94560;
+      color: #fff;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(233,69,96,0.3);
+    }
+
+    .alert {
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      font-size: 14px;
+      border: 2px solid #ff6b7a;
+      background: #fff5f5;
+      color: #c72c48;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .back-link a {
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .back-link a:hover {
+      color: #e94560;
+      gap: 12px;
+    }
+
+    /* Social Proof */
+    .social-proof {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 2px solid #e0e0e0;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .social-proof-avatars {
+      display: flex;
+      margin-left: 10px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e94560, #c72c48);
+      border: 2px solid #fff;
+      margin-left: -10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .avatar:first-child {
+      margin-left: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .split-container {
+        grid-template-columns: 50% 50%;
+      }
+
+      .hero-side {
+        padding: 40px;
+      }
+
+      .form-side {
+        padding: 40px;
+      }
+
+      .hero-title {
+        font-size: 42px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .split-container {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-side {
+        min-height: auto;
+        padding: 50px 30px;
+      }
+
+      .form-side {
+        padding: 50px 30px;
+      }
+
+      .hero-title {
+        font-size: 38px;
+      }
+
+      .trust-section {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 576px) {
+      .hero-side {
+        padding: 40px 20px;
+      }
+
+      .form-side {
+        padding: 40px 20px;
+      }
+
+      .hero-title {
+        font-size: 32px;
+      }
+
+      .hero-subtitle {
+        font-size: 16px;
+      }
+
+      .feature-pills {
+        gap: 10px;
+      }
+
+      .feature-pill {
+        font-size: 13px;
+        padding: 10px 18px;
+      }
+
+      .trust-section {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+
+      .form-header h2 {
+        font-size: 28px;
+      }
+
+      .brand-name {
+        font-size: 22px;
+      }
+
+      .brand-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="split-container">
+    
+    <!-- LEFT SIDE - Immersive Hero -->
+    <div class="hero-side">
+      <!-- Floating Musical Notes -->
+      <span class="musical-note">♪</span>
+      <span class="musical-note">♫</span>
+      <span class="musical-note">♬</span>
+      <span class="musical-note">♪</span>
+      <span class="musical-note">♫</span>
+
+      <div class="hero-content">
+        <div class="brand-logo">
+          <div class="brand-icon">
+            <i class="fas fa-guitar"></i>
+          </div>
+          <div class="brand-name">Serotonin Music</div>
+        </div>
+
+        <h1 class="hero-title">Play Your Heart Out 🎸</h1>
+        <p class="hero-subtitle">Join thousands of musicians who trust Serotonin for premium instruments, expert guidance, and unbeatable service.</p>
+
+        <div class="feature-pills">
+          <div class="feature-pill">
+            <i class="fas fa-check-circle"></i>
+            <span>Authentic Gear</span>
+          </div>
+          <div class="feature-pill">
+            <i class="fas fa-shipping-fast"></i>
+            <span>Fast Shipping</span>
+          </div>
+          <div class="feature-pill">
+            <i class="fas fa-shield-alt"></i>
+            <span>Warranty Included</span>
+          </div>
+          <div class="feature-pill">
+            <i class="fas fa-headset"></i>
+            <span>24/7 Support</span>
+          </div>
+        </div>
+
+        <div class="trust-section">
+          <div class="trust-item">
+            <div class="trust-number">500+</div>
+            <div class="trust-label">Premium Instruments</div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-number">5,000+</div>
+            <div class="trust-label">Happy Musicians</div>
+          </div>
+          <div class="trust-item">
+            <div class="trust-number">98%</div>
+            <div class="trust-label">Satisfaction Rate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE - Login Form -->
+    <div class="form-side">
+      <div class="form-container">
+        <div class="form-header">
+          <h2>Welcome Back! 👋</h2>
+          <p>Enter your credentials to access your account</p>
+        </div>
+
+        {% if form.errors %}
+          <div class="alert">
+            <i class="fas fa-exclamation-circle"></i>
+            {% for field in form %}
+              {% for error in field.errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'shop:login' %}">
+          {% csrf_token %}
+          
+          <div class="form-group">
+            <label for="id_username" class="form-label">Username</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user input-icon"></i>
+              <input 
+                type="text" 
+                name="username" 
+                autofocus 
+                required 
+                class="form-control" 
+                id="id_username"
+                placeholder="Enter your username"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="id_password" class="form-label">Password</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock input-icon"></i>
+              <input 
+                type="password" 
+                name="password" 
+                required 
+                class="form-control" 
+                id="id_password"
+                placeholder="Enter your password"
+              >
+            </div>
+          </div>
+
+          <div class="form-check">
+            <input 
+              type="checkbox" 
+              name="remember_me" 
+              class="form-check-input" 
+              id="remember_me"
+            >
+            <label class="form-check-label" for="remember_me">
+              Keep me logged in
+            </label>
+          </div>
+
+          <input type="hidden" name="next" value="{{ next }}">
+          
+          <button type="submit" class="btn-login">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
+          </button>
+        </form>
+
+        <div class="forgot-password">
+          <a href="{% url 'password_reset' %}">
+            <i class="fas fa-key"></i> Forgot Password?
+          </a>
+        </div>
+
+        <div class="divider">OR</div>
+
+        <a href="{% url 'shop:register' %}" class="btn-register">
+          <i class="fas fa-user-plus"></i>
+          Create Account
+        </a>
+
+        <div class="back-link">
+          <a href="{% url 'shop:home' %}">
+            <i class="fas fa-arrow-left"></i>
+            Back to Home
+          </a>
+        </div>
+
+        <div class="social-proof">
+          <span>Trusted by musicians worldwide</span>
+          <div class="social-proof-avatars">
+            <div class="avatar">🎸</div>
+            <div class="avatar">🎹</div>
+            <div class="avatar">🥁</div>
+            <div class="avatar">🎤</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

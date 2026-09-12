@@ -1,0 +1,48 @@
+{% load static %}
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="{% url 'shop:home' %}" class="nav-logo">Daboss Motor Shop</a>
+
+    <ul class="nav-links">
+      <li><a href="{% url 'shop:home' %}">Home</a></li>
+      <li><a href="{% url 'shop:product_list' %}">Shop</a></li>
+      {% if request.user.is_authenticated %}
+        <li><a href="{% url 'shop:my_orders' %}">Orders</a></li>
+        <li><a href="{% url 'shop:wishlist' %}">Wishlist</a></li>
+      {% endif %}
+    </ul>
+
+    <div class="nav-actions">
+      <a href="{% url 'shop:view_cart' %}" class="nav-icon-btn" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="20" r="1.4" fill="currentColor" stroke="none"/></svg>
+        <span class="nav-badge" id="cart-badge"></span>
+      </a>
+
+      {% if request.user.is_authenticated %}
+        <a href="{% url 'shop:profile' %}" class="nav-icon-btn" aria-label="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.6-3.6 4.4-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
+        </a>
+        <form action="{% url 'shop:logout' %}" method="POST" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="link-chevron" style="background:none;border:none;font-size:13px;cursor:pointer;">Sign out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'shop:login' %}" class="btn btn-secondary" style="padding:8px 18px;font-size:13px;">Sign in</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+{% if request.user.is_authenticated %}
+<script>
+  fetch("{% url 'shop:cart_count' %}", { headers: { "X-Requested-With": "XMLHttpRequest" } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !data.count) return;
+      var badge = document.getElementById('cart-badge');
+      badge.textContent = data.count;
+      badge.style.display = 'block';
+    })
+    .catch(function () { /* silent — badge just stays hidden */ });
+</script>
+{% endif %}

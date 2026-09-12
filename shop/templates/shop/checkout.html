@@ -1,0 +1,70 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Checkout — Serotonin{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: var(--space-7);">
+  <h1 style="font-size:32px;margin-bottom:var(--space-6);">Checkout</h1>
+
+  {% if cart_items %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="cart-layout">
+      <div>
+        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Shipping address</h2>
+        {% for addr in shipping_addresses %}
+          <label class="radio-card">
+            <input type="radio" name="shipping_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} required>
+            <span>{{ addr.full_name }} &mdash; {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}</span>
+          </label>
+        {% endfor %}
+
+        <h2 style="font-size:18px;margin:var(--space-6) 0 var(--space-4);">Billing address</h2>
+        {% for addr in billing_addresses %}
+          <label class="radio-card">
+            <input type="radio" name="billing_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} required>
+            <span>{{ addr.full_name }} &mdash; {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}</span>
+          </label>
+        {% endfor %}
+
+        <div style="margin-bottom:var(--space-6);">
+          <a href="{% url 'shop:manage_addresses' %}" class="link-chevron">Manage addresses &rsaquo;</a>
+        </div>
+
+        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Payment method</h2>
+        <label class="radio-card"><input type="radio" name="payment_method" value="cash_on_delivery" checked required> Cash on delivery</label>
+        <label class="radio-card"><input type="radio" name="payment_method" value="gcash" required> GCash</label>
+        <label class="radio-card"><input type="radio" name="payment_method" value="maya" required> Maya</label>
+        <label class="radio-card"><input type="radio" name="payment_method" value="credit_card" required> Credit card</label>
+        <label class="radio-card"><input type="radio" name="payment_method" value="debit_card" required> Debit card</label>
+
+        <div class="field" style="margin-top:var(--space-5);">
+          <label for="notes">Order notes (optional)</label>
+          <textarea name="notes" id="notes" placeholder="Delivery instructions, gift note, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Order summary</h2>
+        {% for item in cart_items %}
+          <div class="summary-row"><span>{{ item.product.name }} &times;{{ item.quantity }}</span><span>&#8369;{{ item.total_price|floatformat:2 }}</span></div>
+        {% endfor %}
+        <div class="summary-row"><span>Subtotal</span><span>&#8369;{{ subtotal|floatformat:2 }}</span></div>
+        <div class="summary-row"><span>Tax</span><span>&#8369;{{ tax|floatformat:2 }}</span></div>
+        <div class="summary-row"><span>Shipping</span><span>&#8369;{{ shipping_cost|floatformat:2 }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>&#8369;{{ total|floatformat:2 }}</span></div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--space-5);">Place order</button>
+        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:var(--space-3);">By placing this order you agree to our terms and conditions.</p>
+      </div>
+    </div>
+  </form>
+  {% else %}
+    <div class="empty-state">
+      <h2>Your cart is empty</h2>
+      <p>Add something to your cart before checking out.</p>
+      <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Continue shopping</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

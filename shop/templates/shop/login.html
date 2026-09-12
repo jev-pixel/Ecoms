@@ -1,0 +1,50 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Sign In — Daboss Motor Shop{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>Sign in</h1>
+    <p class="auth-subtitle">Welcome back to Daboss Motor Shop</p>
+
+    {% if form.errors %}
+      <div class="alert alert-error">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        {% for field in form %}{% for error in field.errors %}{{ error }}{% endfor %}{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'shop:login' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" required autofocus placeholder="Enter your username">
+      </div>
+      <div class="field">
+        <label for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" required placeholder="Enter your password">
+      </div>
+      <div class="checkbox-row" style="margin-bottom: var(--space-5);">
+        <input type="checkbox" name="remember_me" id="remember_me">
+        <label for="remember_me" style="margin:0;">Remember me</label>
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+    </form>
+
+    <div class="text-center" style="margin-top: var(--space-4);">
+      <a href="{% url 'shop:password_reset' %}" class="link-chevron" style="font-size:13px;">Forgot your password?</a>
+    </div>
+
+    <div class="auth-divider">or</div>
+
+    <a href="{% url 'shop:register' %}" class="btn btn-secondary btn-block">Create an account</a>
+
+    <div class="auth-footer-link">
+      <a href="{% url 'shop:home' %}">&larr; Back to home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
