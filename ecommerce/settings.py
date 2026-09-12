@@ -27,6 +27,7 @@ env.read_env(BASE_DIR / '.env')
 SECRET_KEY = env('SECRET_KEY')  # no default on purpose — app should fail to start without one
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 # ------------------------------
 # INSTALLED APPS
