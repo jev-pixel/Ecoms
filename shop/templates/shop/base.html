@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Daboss Motor Shop{% endblock %}</title>
+  <title>{% block title %}Daboss Fast Food Resto{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/premium-motor-theme.css' %}">
   {% block extra_css %}{% endblock %}
 </head>
@@ -28,13 +28,13 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-col" style="max-width:280px;">
-          <h5>Daboss Motor Shop</h5>
-          <p style="margin:0;">Premium rims, seats, tires, and performance parts — chosen for fit, finish, and the road ahead.</p>
+          <h5>Daboss Fast Food Resto</h5>
+          <p style="margin:0;">Burgers, fries, drinks, and combo meals — made fresh, served fast, every time.</p>
         </div>
         <div class="footer-col">
-          <h5>Shop</h5>
+          <h5>Menu</h5>
           <ul>
-            <li><a href="{% url 'shop:product_list' %}">All products</a></li>
+            <li><a href="{% url 'shop:product_list' %}">Full menu</a></li>
             <li><a href="{% url 'shop:view_cart' %}">Cart</a></li>
             {% if request.user.is_authenticated %}<li><a href="{% url 'shop:my_orders' %}">Orders</a></li>{% endif %}
           </ul>
@@ -52,7 +52,7 @@
           </ul>
         </div>
       </div>
-      <div class="footer-bottom">&copy; 2026 Daboss Motor Shop. All rights reserved.</div>
+      <div class="footer-bottom">&copy; 2026 Daboss Fast Food Resto. All rights reserved.</div>
     </div>
   </footer>
 

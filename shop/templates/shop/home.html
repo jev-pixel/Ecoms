@@ -1,17 +1,17 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Daboss Motor Shop{% endblock %}
+{% block title %}Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
 
 <section class="hero">
-  <h1>Built for the road. Chosen for the ride.</h1>
-  <p>Rims, seats, tires, and performance parts — hand-picked for fit and finish, not just fitment charts.</p>
+  <h1>Made fresh. Served fast.</h1>
+  <p>Burgers, fries, drinks, and combo meals — hand-picked for flavor and quality, not just a menu board.</p>
   <div class="hero-actions">
-    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Shop all parts</a>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Order now</a>
     {% if categories %}
-      <a href="#categories" class="btn btn-secondary">Browse by category</a>
+      <a href="#categories" class="btn btn-secondary">Browse the menu</a>
     {% endif %}
   </div>
 </section>
@@ -20,7 +20,7 @@
 <section class="section" id="categories">
   <div class="container">
     <div class="section-header">
-      <h2>Shop by category</h2>
+      <h2>Browse by category</h2>
     </div>
     <div class="category-grid">
       {% for cat in categories %}
@@ -42,7 +42,7 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>Featured</h2>
+      <h2>Chef's picks</h2>
       <a href="{% url 'shop:product_list' %}" class="link-chevron">See all &rsaquo;</a>
     </div>
     <div class="product-grid">
@@ -58,7 +58,7 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>On sale</h2>
+      <h2>Today's deals</h2>
     </div>
     <div class="product-grid">
       {% for product in sale_products %}
@@ -73,7 +73,7 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>New arrivals</h2>
+      <h2>New on the menu</h2>
     </div>
     <div class="product-grid">
       {% for product in latest_products %}
