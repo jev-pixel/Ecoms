@@ -142,12 +142,14 @@ class Cart(models.Model):
     
     @property
     def tax_amount(self):
-        # 10% tax rate - adjust as needed
-        return self.subtotal * Decimal('0.10')
-    
+        # Tax removed from the order process for now — kept as a zero-value
+        # property so templates/serializers that still reference it don't break.
+        return Decimal('0.00')
+
     @property
     def total(self):
-        return self.subtotal + self.tax_amount
+        # No tax or shipping fee added — total is just the cart subtotal.
+        return self.subtotal
 
 
 class CartItem(models.Model):

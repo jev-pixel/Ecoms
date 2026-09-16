@@ -52,8 +52,6 @@
           <div class="summary-row"><span>{{ item.product.name }} &times;{{ item.quantity }}</span><span>&#8369;{{ item.total_price|floatformat:2 }}</span></div>
         {% endfor %}
         <div class="summary-row"><span>Subtotal</span><span>&#8369;{{ subtotal|floatformat:2 }}</span></div>
-        <div class="summary-row"><span>Tax</span><span>&#8369;{{ tax|floatformat:2 }}</span></div>
-        <div class="summary-row"><span>Shipping</span><span>&#8369;{{ shipping_cost|floatformat:2 }}</span></div>
         <div class="summary-row total"><span>Total</span><span>&#8369;{{ total|floatformat:2 }}</span></div>
         <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--space-5);">
           {% if payment_type == 'cash' %}Place order{% else %}Continue to payment{% endif %}

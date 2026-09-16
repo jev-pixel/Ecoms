@@ -291,79 +291,62 @@ ONLINE_PAYMENT_METHODS = ['gcash', 'maya', 'credit_card', 'debit_card']
 
 @login_required
 def checkout(request):
-    """Checkout step 2 — address + notes, branching on the payment_type
-    chosen on the select_payment_method screen."""
-    payment_type = request.session.get('checkout_payment_type')
-    if payment_type not in ('cash', 'online'):
-        return redirect('shop:select_payment_method')
-
+    """Checkout process"""
     cart = get_or_create_cart(request)
     cart_items = cart.items.select_related('product').all()
-    
+
     if not cart_items:
         messages.warning(request, 'Your cart is empty')
         return redirect('shop:product_list')
-    
-    # Check stock availability
+
     for item in cart_items:
         if item.quantity > item.product.stock:
             messages.error(request, f'Not enough stock for {item.product.name}')
             return redirect('shop:view_cart')
-    
-    # Get user addresses. Billing address is intentionally NOT collected
-    # separately for now — asking for two addresses (shipping + billing)
-    # was extra friction for what's really a pickup/dine-in order. Any
-    # saved address works here; its details get mirrored into the
-    # Order's billing_* fields below so nothing downstream (admin, the
-    # Order model itself) needs to change.
-    shipping_addresses = Address.objects.filter(user=request.user)
 
-    # Check if user has any addresses
+    # Only a shipping address is collected now — the separate billing-address
+    # step was dropped to cut checkout friction. Order.billing_* fields still
+    # exist in the schema, so they're mirrored from shipping below.
+    shipping_addresses = Address.objects.filter(
+        user=request.user,
+        address_type__in=['shipping', 'both']
+    )
+
     if not shipping_addresses.exists():
-        messages.warning(request, 'Please add an address before checking out.')
+        messages.warning(request, 'Please add a shipping address before checking out.')
         return redirect('shop:manage_addresses')
-    
+
     if request.method == 'POST':
-        # Get address ID from form
         shipping_address_id = request.POST.get('shipping_address')
+        payment_method = request.POST.get('payment_method')
         notes = request.POST.get('notes', '')
 
-        if payment_type == 'cash':
-            payment_method = 'cash_on_delivery'
-        else:
-            payment_method = request.POST.get('payment_method')
-            if payment_method not in ONLINE_PAYMENT_METHODS:
-                messages.error(request, 'Please select an online payment method')
-                return redirect('shop:checkout')
-        
-        # Validate that an address was selected
         if not shipping_address_id:
-            messages.error(request, 'Please select an address')
+            messages.error(request, 'Please select a shipping address')
             return redirect('shop:checkout')
-        
-        # Try to get the address
+
+        if not payment_method:
+            messages.error(request, 'Please select a payment method')
+            return redirect('shop:checkout')
+
         try:
             shipping_address = Address.objects.get(
                 id=shipping_address_id,
                 user=request.user,
+                address_type__in=['shipping', 'both']
             )
         except Address.DoesNotExist:
-            messages.error(request, 'Invalid address selected')
+            messages.error(request, 'Invalid shipping address selected')
             return redirect('shop:checkout')
 
-        # Billing mirrors shipping — see note above.
-        billing_address = shipping_address
-        
-        # Calculate totals
+        # Tax and shipping fee removed — total is just the cart subtotal.
         subtotal = cart.subtotal
-        tax_amount = cart.tax_amount
-        shipping_cost = Decimal('50.00')
-        total_amount = subtotal + tax_amount + shipping_cost
-        
-        # Create order
+        tax_amount = Decimal('0.00')
+        shipping_cost = Decimal('0.00')
+        total_amount = subtotal
+
         order = Order.objects.create(
             user=request.user,
-            payment_type=payment_type,
             subtotal=subtotal,
             tax_amount=tax_amount,
             shipping_cost=shipping_cost,
@@ -375,17 +358,16 @@ def checkout(request):
             shipping_state=shipping_address.state,
             shipping_postal_code=shipping_address.postal_code,
             shipping_country=shipping_address.country,
-            billing_full_name=billing_address.full_name,
-            billing_phone=billing_address.phone_number,
-            billing_address=billing_address.street_address,
-            billing_city=billing_address.city,
-            billing_state=billing_address.state,
-            billing_postal_code=billing_address.postal_code,
-            billing_country=billing_address.country,
+            billing_full_name=shipping_address.full_name,
+            billing_phone=shipping_address.phone_number,
+            billing_address=shipping_address.street_address,
+            billing_city=shipping_address.city,
+            billing_state=shipping_address.state,
+            billing_postal_code=shipping_address.postal_code,
+            billing_country=shipping_address.country,
             notes=notes,
         )
-        
-        # Create order items
+
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -396,46 +378,30 @@ def checkout(request):
                 unit_price=item.product.price,
                 total_price=item.total_price
             )
-            
-            # Update product stock
             product = item.product
             product.stock -= item.quantity
             product.save()
-        
-        # Create payment record — stays 'pending' either way. Cash gets
-        # marked completed when the cashier collects it at the counter;
-        # online gets marked completed on the confirm_online_payment step.
+
         Payment.objects.create(
             order=order,
             payment_method=payment_method,
             amount=total_amount,
-            status='pending',
+            status='pending' if payment_method != 'cash_on_delivery' else 'completed'
         )
-        
-        # Clear cart
+
         cart_items.delete()
-        del request.session['checkout_payment_type']
 
-        if payment_type == 'online':
-            return redirect('shop:online_payment', order_id=order.id)
-
-        messages.success(request, f'Order {order.order_number} placed successfully! Show your QR code at the counter.')
+        messages.success(request, f'Order {order.order_number} placed successfully!')
         return redirect('shop:order_success', order_id=order.id)
-    
-    # Calculate totals for display
+
     subtotal = cart.subtotal
-    tax = cart.tax_amount
-    shipping_cost = Decimal('50.00')
-    total = subtotal + tax + shipping_cost
-    
+    total = subtotal
+
     context = {
         'cart_items': cart_items,
         'subtotal': subtotal,
-        'tax': tax,
-        'shipping_cost': shipping_cost,
         'total': total,
         'shipping_addresses': shipping_addresses,
-        'payment_type': payment_type,
     }
     return render(request, 'shop/checkout.html', context)
 
@@ -753,6 +719,85 @@ def register(request):
 
     return render(request, 'shop/register.html')
     
+    def create(self, request):
+        """Create a new order from cart"""
+        if request.user.is_authenticated:
+            cart = Cart.objects.filter(user=request.user).first()
+        else:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not cart or not cart.items.exists():
+            return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Billing address no longer collected — mirrored from shipping.
+        shipping_address_id = request.data.get('shipping_address_id')
+        payment_method = request.data.get('payment_method')
+        notes = request.data.get('notes', '')
+
+        shipping_address = get_object_or_404(Address, id=shipping_address_id, user=request.user)
+
+        for item in cart.items.all():
+            if item.quantity > item.product.stock:
+                return Response(
+                    {'error': f'Not enough stock for {item.product.name}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # Tax and shipping fee removed — total is just the cart subtotal.
+        subtotal = cart.subtotal
+        tax_amount = 0
+        shipping_cost = 0
+        total_amount = subtotal
+
+        order = Order.objects.create(
+            user=request.user,
+            subtotal=subtotal,
+            tax_amount=tax_amount,
+            shipping_cost=shipping_cost,
+            total_amount=total_amount,
+            shipping_full_name=shipping_address.full_name,
+            shipping_phone=shipping_address.phone_number,
+            shipping_address=shipping_address.street_address,
+            shipping_city=shipping_address.city,
+            shipping_state=shipping_address.state,
+            shipping_postal_code=shipping_address.postal_code,
+            shipping_country=shipping_address.country,
+            billing_full_name=shipping_address.full_name,
+            billing_phone=shipping_address.phone_number,
+            billing_address=shipping_address.street_address,
+            billing_city=shipping_address.city,
+            billing_state=shipping_address.state,
+            billing_postal_code=shipping_address.postal_code,
+            billing_country=shipping_address.country,
+            notes=notes,
+        )
+
+        for item in cart.items.all():
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                product_name=item.product.name,
+                product_sku=item.product.sku,
+                quantity=item.quantity,
+                unit_price=item.product.price,
+                total_price=item.total_price
+            )
+            product = item.product
+            product.stock -= item.quantity
+            product.save()
+
+        Payment.objects.create(
+            order=order,
+            payment_method=payment_method,
+            amount=total_amount,
+            status='pending' if payment_method != 'cash_on_delivery' else 'completed'
+        )
+
+        cart.items.all().delete()
+
+        serializer = self.get_serializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 @login_required
 def notifications(request):
     notifications = request.user.notifications.all()[:50]
