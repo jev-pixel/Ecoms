@@ -1,55 +1,59 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Scan order — Cashier{% endblock %}
+{% block title %}Scan Order — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
 <div class="container" style="max-width:480px;padding-top:var(--space-7);padding-bottom:var(--space-9);">
-  <a href="{% url 'shop:cashier_dashboard' %}" class="link-chevron" style="font-size:13px;">&larr; Back to dashboard</a>
-  <h1 style="font-size:24px;margin:var(--space-4) 0 var(--space-5);">Scan a customer's QR code</h1>
-
-  <div id="qr-reader" style="width:100%;border-radius:var(--radius-md);overflow:hidden;margin-bottom:var(--space-5);"></div>
-  <p id="qr-reader-fallback-msg" style="display:none;padding:var(--space-5);color:var(--color-text-secondary);text-align:center;">
-    Camera not available — use manual entry below.
+  <h1 style="font-size:24px;margin-bottom:var(--space-2);">Scan customer QR</h1>
+  <p style="color:var(--color-text-secondary);margin-bottom:var(--space-5);">
+    Point the camera at the receipt, or type the order number if the scan fails.
   </p>
 
-  <div class="auth-divider">or enter it manually</div>
+  {# Camera reader target. The QR encodes a full URL (…/cashier/order/<token>/),
+     so on decode we pull the last non-empty path segment — this also works
+     unchanged for someone typing a bare token or order number below. #}
+  <div id="qr-reader" style="width:100%;margin-bottom:var(--space-5);"></div>
 
-  <form method="POST" action="{% url 'shop:cashier_scan' %}">
+  <form method="POST" action="{% url 'shop:cashier_scan' %}" id="manual-form">
     {% csrf_token %}
-    <div class="field">
-      <input type="text" name="code" placeholder="Order number, e.g. ORD-52747734" required
-             style="width:100%;font-size:15px;padding:12px 14px;border:1px solid var(--color-border);border-radius:var(--radius-sm);">
-    </div>
-    <button type="submit" class="btn btn-primary btn-block">Look up order</button>
+    <label for="code" style="display:block;margin-bottom:var(--space-2);font-weight:600;">Order # or QR token</label>
+    <input type="text" id="code" name="code" class="form-input" style="width:100%;padding:var(--space-3);margin-bottom:var(--space-3);" placeholder="ORD-12345678 or QR token" autofocus>
+    <button type="submit" class="btn btn-primary btn-block">Look Up Order</button>
   </form>
+
+  <a href="{% url 'shop:cashier_dashboard' %}" class="btn btn-secondary btn-block" style="margin-top:var(--space-3);">Back to Dashboard</a>
 </div>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+{# Optional: enable camera scanning by adding html5-qrcode. Safe to remove
+   this block entirely if you only want the manual-entry fallback. #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script>
-  function extractOrderToken(decodedText) {
-    // The QR encodes a full URL like /shop/cashier/order/<token>/ —
-    // pull the trailing token out so this also works if someone scans it
-    // with a plain camera app that just opens the link.
-    var parts = decodedText.split('/').filter(Boolean);
-    return parts[parts.length - 1];
-  }
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Html5Qrcode === 'undefined') return;
 
-  var scanner = new Html5Qrcode("qr-reader");
-  Html5Qrcode.getCameras().then(function (cameras) {
-    if (!cameras || !cameras.length) throw new Error('no camera');
+    function extractCode(decodedText) {
+      // Full URL from the printed QR -> last path segment.
+      // Bare token/order-number scans pass through untouched.
+      var trimmed = decodedText.replace(/\/+$/, '');
+      var parts = trimmed.split('/');
+      return parts[parts.length - 1];
+    }
+
+    var scanner = new Html5Qrcode('qr-reader');
     scanner.start(
-      cameras[0].id,
-      { fps: 10, qrbox: 240 },
-      function (decodedText) {
-        scanner.stop().then(function () {
-          window.location.href = '/shop/cashier/order/' + extractOrderToken(decodedText) + '/';
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: 250 },
+      function onScanSuccess(decodedText) {
+        document.getElementById('code').value = extractCode(decodedText);
+        scanner.stop().finally(function () {
+          document.getElementById('manual-form').submit();
         });
-      }
-    );
-  }).catch(function () {
-    document.getElementById('qr-reader').style.display = 'none';
-    document.getElementById('qr-reader-fallback-msg').style.display = 'block';
+      },
+      function onScanFailure() { /* keep scanning silently */ }
+    ).catch(function () {
+      // Camera unavailable/denied — manual entry below still works.
+    });
   });
 </script>
 {% endblock %}

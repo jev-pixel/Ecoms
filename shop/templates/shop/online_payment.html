@@ -1,25 +1,27 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Complete payment — Daboss Fast Food Resto{% endblock %}
+{% block title %}Pay Online — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width:480px;padding-top:var(--space-7);padding-bottom:var(--space-9);">
-  <div class="panel text-center">
-    <h1 style="font-size:24px;margin-bottom:var(--space-2);">Pay with {{ order.payment.get_payment_method_display }}</h1>
-    <p style="color:var(--color-text-secondary);margin-bottom:var(--space-5);">Order {{ order.order_number }}</p>
-    <div style="font-size:36px;font-weight:700;margin-bottom:var(--space-6);">&#8369;{{ order.total_amount|floatformat:2 }}</div>
+<div class="container" style="max-width:480px;padding-top:var(--space-7);padding-bottom:var(--space-9);text-align:center;">
+  <h1 style="font-size:24px;margin-bottom:var(--space-2);">Complete your payment</h1>
+  <p style="color:var(--color-text-secondary);margin-bottom:var(--space-6);">
+    Order {{ order.order_number }} &middot; &#8369;{{ order.total_amount }}
+  </p>
 
-    <div class="alert alert-info" style="text-align:left;">
-      This is a placeholder payment step. Wire in a real GCash/Maya/PayMongo
-      redirect + webhook here — for now, tap below once you've sent payment
-      to simulate confirmation.
-    </div>
-
-    <form method="POST" action="{% url 'shop:confirm_online_payment' order.id %}" style="margin-top:var(--space-5);">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-primary btn-block">I've completed payment</button>
-    </form>
+  {# Placeholder — replace this block with a real GCash/Maya/PayMongo
+     redirect + webhook. Until then, this button simulates a completed
+     payment so the checkout flow can be tested end to end. #}
+  <div class="payment-choice-card" style="cursor:default;margin-bottom:var(--space-6);">
+    <p>This is a placeholder payment screen. In production this redirects to your payment gateway, which calls back here once payment clears.</p>
   </div>
+
+  <form method="POST" action="{% url 'shop:confirm_online_payment' order.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary btn-block">I've Completed Payment</button>
+  </form>
+
+  <a href="{% url 'shop:my_orders' %}" style="display:inline-block;margin-top:var(--space-4);color:var(--color-text-secondary);">Cancel and view my orders</a>
 </div>
 {% endblock %}

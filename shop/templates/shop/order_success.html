@@ -1,48 +1,25 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Order Confirmed — Daboss Fast Food Resto{% endblock %}
+{% block title %}Order Placed — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width:640px;padding-top:var(--space-8);padding-bottom:var(--space-9);">
-  <div class="panel text-center" style="margin-bottom:var(--space-6);">
-    <div style="width:56px;height:56px;border-radius:50%;background:#eafaf0;color:var(--color-success);display:flex;align-items:center;justify-content:center;margin:0 auto var(--space-5);font-size:26px;">&#10003;</div>
-    <h1 style="font-size:28px;margin-bottom:var(--space-2);">Order confirmed</h1>
-    <p style="color:var(--color-text-secondary);margin-bottom:0;">Thanks for your order — a confirmation has been recorded under order <strong>{{ order.order_number }}</strong>.</p>
-  </div>
+<div class="container" style="max-width:480px;padding-top:var(--space-7);padding-bottom:var(--space-9);text-align:center;">
+  <div class="icon-circle accent" style="margin:0 auto var(--space-4);font-size:28px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;">&#10003;</div>
+  <h1 style="font-size:24px;margin-bottom:var(--space-2);">Order placed!</h1>
+  <p style="color:var(--color-text-secondary);margin-bottom:var(--space-6);">
+    {{ order.order_number }} &middot;
+    {% if order.payment_type == 'cash' %}Pay &#8369;{{ order.total_amount }} at the counter.{% else %}Payment received.{% endif %}
+  </p>
 
-  <div class="panel text-center" style="margin-bottom:var(--space-6);">
-    <h2 style="font-size:16px;margin-bottom:var(--space-4);">Show this at the counter</h2>
-    <img src="{{ qr_code }}" alt="Order QR code" style="width:220px;height:220px;margin:0 auto var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-border);">
-    {% if order.payment_type == 'cash' %}
-      <p style="font-size:14px;color:var(--color-text-secondary);">
-        Pay <strong>&#8369;{{ order.total_amount|floatformat:2 }}</strong> in cash when the cashier scans this.
-      </p>
-    {% else %}
-      <p style="font-size:14px;color:var(--color-success);font-weight:600;">Payment received</p>
-      <p style="font-size:13px;color:var(--color-text-secondary);">The cashier just needs to scan this to start your order.</p>
-    {% endif %}
+  {% if qr_code %}
+  <div class="payment-choice-card" style="cursor:default;margin-bottom:var(--space-6);">
+    <img src="{{ qr_code }}" alt="Order QR code" style="width:220px;height:220px;margin:0 auto var(--space-3);display:block;">
+    <p style="margin:0;">Show this QR at the counter to collect your order.</p>
   </div>
+  {% endif %}
 
-  <div class="panel">
-    <div class="list-row" style="border:none;padding-top:0;">
-      <span class="list-row-meta">Status</span>
-      <span class="badge badge-warning">{{ order.get_status_display }}</span>
-    </div>
-    {% for item in order.items.all %}
-      <div class="list-row">
-        <div>
-          <div class="list-row-title" style="font-weight:400;">{{ item.product_name }} &times;{{ item.quantity }}</div>
-        </div>
-        <div class="list-row-amount">&#8369;{{ item.total_price|floatformat:2 }}</div>
-      </div>
-    {% endfor %}
-    <div class="summary-row total"><span>Total</span><span>&#8369;{{ order.total_amount|floatformat:2 }}</span></div>
-  </div>
-
-  <div style="display:flex;gap:var(--space-3);justify-content:center;margin-top:var(--space-6);">
-    <a href="{% url 'shop:order_detail' order.id %}" class="btn btn-secondary">View order details</a>
-    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Continue shopping</a>
-  </div>
+  <a href="{% url 'shop:order_detail' order.id %}" class="btn btn-primary btn-block">View Order Details</a>
+  <a href="{% url 'shop:product_list' %}" class="btn btn-secondary btn-block" style="margin-top:var(--space-3);">Continue Shopping</a>
 </div>
 {% endblock %}

@@ -291,7 +291,8 @@ ONLINE_PAYMENT_METHODS = ['gcash', 'maya', 'credit_card', 'debit_card']
 
 @login_required
 def checkout(request):
-    """Checkout process"""
+    """Checkout process — step 2, after select_payment_method has stored
+    the cash/online choice in the session."""
     cart = get_or_create_cart(request)
     cart_items = cart.items.select_related('product').all()
 
@@ -303,6 +304,15 @@ def checkout(request):
         if item.quantity > item.product.stock:
             messages.error(request, f'Not enough stock for {item.product.name}')
             return redirect('shop:view_cart')
+
+    # Without this, checkout.html's {% if payment_type == 'cash' %} branch
+    # can't tell which payment sub-flow to render (it was previously always
+    # falling through to the online branch, and cash orders had no way to
+    # submit since that branch renders no payment_method inputs).
+    payment_type = request.session.get('checkout_payment_type')
+    if payment_type not in ('cash', 'online'):
+        messages.info(request, 'Please choose how you want to pay first.')
+        return redirect('shop:select_payment_method')
 
     # Only a shipping address is collected now — the separate billing-address
     # step was dropped to cut checkout friction. Order.billing_* fields still
@@ -318,16 +328,23 @@ def checkout(request):
 
     if request.method == 'POST':
         shipping_address_id = request.POST.get('shipping_address')
-        payment_method = request.POST.get('payment_method')
         notes = request.POST.get('notes', '')
 
         if not shipping_address_id:
             messages.error(request, 'Please select a shipping address')
             return redirect('shop:checkout')
 
-        if not payment_method:
-            messages.error(request, 'Please select a payment method')
-            return redirect('shop:checkout')
+        # Cash orders don't submit a payment_method field at all (the
+        # template just shows a static "pay at counter" line) — only
+        # require and validate one for the online branch. Payment.payment_method
+        # has no 'cash' choice, only 'cash_on_delivery', so map to that.
+        if payment_type == 'cash':
+            payment_method = 'cash_on_delivery'
+        else:
+            payment_method = request.POST.get('payment_method')
+            if payment_method not in ONLINE_PAYMENT_METHODS:
+                messages.error(request, 'Please select a payment method')
+                return redirect('shop:checkout')
 
         try:
             shipping_address = Address.objects.get(
@@ -347,6 +364,7 @@ def checkout(request):
 
         order = Order.objects.create(
             user=request.user,
+            payment_type=payment_type,
             subtotal=subtotal,
             tax_amount=tax_amount,
             shipping_cost=shipping_cost,
@@ -382,16 +400,23 @@ def checkout(request):
             product.stock -= item.quantity
             product.save()
 
+        # Both cash-at-counter and online payments start pending — cash is
+        # confirmed by the cashier at pickup (cashier_views.punch_order),
+        # online is confirmed by confirm_online_payment() below.
         Payment.objects.create(
             order=order,
             payment_method=payment_method,
             amount=total_amount,
-            status='pending' if payment_method != 'cash_on_delivery' else 'completed'
+            status='pending'
         )
 
         cart_items.delete()
+        del request.session['checkout_payment_type']
 
         messages.success(request, f'Order {order.order_number} placed successfully!')
+
+        if payment_type == 'online':
+            return redirect('shop:online_payment', order_id=order.id)
         return redirect('shop:order_success', order_id=order.id)
 
     subtotal = cart.subtotal
@@ -402,6 +427,7 @@ def checkout(request):
         'subtotal': subtotal,
         'total': total,
         'shipping_addresses': shipping_addresses,
+        'payment_type': payment_type,
     }
     return render(request, 'shop/checkout.html', context)
 
@@ -718,85 +744,7 @@ def register(request):
         return redirect('shop:login')
 
     return render(request, 'shop/register.html')
-    
-    def create(self, request):
-        """Create a new order from cart"""
-        if request.user.is_authenticated:
-            cart = Cart.objects.filter(user=request.user).first()
-        else:
-            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not cart or not cart.items.exists():
-            return Response({'error': 'Cart is empty'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Billing address no longer collected — mirrored from shipping.
-        shipping_address_id = request.data.get('shipping_address_id')
-        payment_method = request.data.get('payment_method')
-        notes = request.data.get('notes', '')
-
-        shipping_address = get_object_or_404(Address, id=shipping_address_id, user=request.user)
-
-        for item in cart.items.all():
-            if item.quantity > item.product.stock:
-                return Response(
-                    {'error': f'Not enough stock for {item.product.name}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        # Tax and shipping fee removed — total is just the cart subtotal.
-        subtotal = cart.subtotal
-        tax_amount = 0
-        shipping_cost = 0
-        total_amount = subtotal
-
-        order = Order.objects.create(
-            user=request.user,
-            subtotal=subtotal,
-            tax_amount=tax_amount,
-            shipping_cost=shipping_cost,
-            total_amount=total_amount,
-            shipping_full_name=shipping_address.full_name,
-            shipping_phone=shipping_address.phone_number,
-            shipping_address=shipping_address.street_address,
-            shipping_city=shipping_address.city,
-            shipping_state=shipping_address.state,
-            shipping_postal_code=shipping_address.postal_code,
-            shipping_country=shipping_address.country,
-            billing_full_name=shipping_address.full_name,
-            billing_phone=shipping_address.phone_number,
-            billing_address=shipping_address.street_address,
-            billing_city=shipping_address.city,
-            billing_state=shipping_address.state,
-            billing_postal_code=shipping_address.postal_code,
-            billing_country=shipping_address.country,
-            notes=notes,
-        )
-
-        for item in cart.items.all():
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                product_name=item.product.name,
-                product_sku=item.product.sku,
-                quantity=item.quantity,
-                unit_price=item.product.price,
-                total_price=item.total_price
-            )
-            product = item.product
-            product.stock -= item.quantity
-            product.save()
-
-        Payment.objects.create(
-            order=order,
-            payment_method=payment_method,
-            amount=total_amount,
-            status='pending' if payment_method != 'cash_on_delivery' else 'completed'
-        )
-
-        cart.items.all().delete()
-
-        serializer = self.get_serializer(order)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @login_required
 def notifications(request):
@@ -804,11 +752,13 @@ def notifications(request):
     context = {'notifications': notifications}
     return render(request, 'shop/notifications.html', context)
 
+
 @login_required
 def mark_notification_read(request, notification_id):
     Notification.objects.filter(id=notification_id, user=request.user).update(is_read=True)
     messages.success(request, 'Notification marked as read.')
     return redirect('shop:notifications')
+
 
 @login_required
 def mark_all_notifications_read(request):

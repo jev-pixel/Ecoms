@@ -4,68 +4,71 @@
 {% block title %}Checkout — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
-<div class="container" style="padding-top: var(--space-7);">
-  <h1 style="font-size:32px;margin-bottom:var(--space-2);">Checkout</h1>
+<div class="container" style="max-width:720px;padding-top:var(--space-7);padding-bottom:var(--space-9);">
+  <h1 style="font-size:28px;margin-bottom:var(--space-1);">Checkout</h1>
   <p style="color:var(--color-text-secondary);margin-bottom:var(--space-6);">
-    Paying {% if payment_type == 'cash' %}with cash at the counter{% else %}online{% endif %} &middot;
-    <a href="{% url 'shop:select_payment_method' %}" class="link-chevron" style="font-size:13px;">change</a>
+    Paying {% if payment_type == 'cash' %}cash at the counter{% else %}online{% endif %}.
+    <a href="{% url 'shop:select_payment_method' %}" style="margin-left:var(--space-2);">Change</a>
   </p>
 
-  {% if cart_items %}
   <form method="POST">
     {% csrf_token %}
-    <div class="cart-layout">
-      <div>
-        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Delivery / pickup details</h2>
-        {% for addr in shipping_addresses %}
-          <label class="radio-card">
-            <input type="radio" name="shipping_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} required>
-            <span>{{ addr.full_name }} &mdash; {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}</span>
-          </label>
-        {% endfor %}
 
-        <div style="margin-bottom:var(--space-6);">
-          <a href="{% url 'shop:manage_addresses' %}" class="link-chevron">Manage addresses &rsaquo;</a>
-        </div>
+    <h3 style="margin-bottom:var(--space-3);">Shipping / pickup details</h3>
+    {% for address in shipping_addresses %}
+    <label class="payment-choice-card" style="display:block;text-align:left;margin-bottom:var(--space-2);">
+      <input type="radio" name="shipping_address" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+      <strong>{{ address.full_name }}</strong> &middot; {{ address.phone_number }}<br>
+      <span style="color:var(--color-text-secondary);">{{ address.street_address }}, {{ address.city }}, {{ address.state }} {{ address.postal_code }}</span>
+    </label>
+    {% endfor %}
+    <a href="{% url 'shop:manage_addresses' %}" style="display:inline-block;margin-bottom:var(--space-5);">+ Add another address</a>
 
-        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Payment method</h2>
-        {% if payment_type == 'cash' %}
-          <div class="radio-card" style="cursor:default;">
-            <span>&#8369; Cash — pay <strong>&#8369;{{ total|floatformat:2 }}</strong> at the counter</span>
-          </div>
-        {% else %}
-          <label class="radio-card"><input type="radio" name="payment_method" value="gcash" checked required> GCash</label>
-          <label class="radio-card"><input type="radio" name="payment_method" value="maya" required> Maya</label>
-          <label class="radio-card"><input type="radio" name="payment_method" value="credit_card" required> Credit card</label>
-          <label class="radio-card"><input type="radio" name="payment_method" value="debit_card" required> Debit card</label>
-        {% endif %}
-
-        <div class="field" style="margin-top:var(--space-5);">
-          <label for="notes">Order notes (optional)</label>
-          <textarea name="notes" id="notes" placeholder="Delivery instructions, gift note, etc."></textarea>
-        </div>
+    {% if payment_type == 'cash' %}
+      <div class="payment-choice-card" style="cursor:default;text-align:left;margin-bottom:var(--space-5);">
+        <p style="margin:0;">You'll pay <strong>&#8369;{{ total }}</strong> in cash at the counter. Your receipt QR is what the cashier scans.</p>
       </div>
+    {% else %}
+      <h3 style="margin-bottom:var(--space-3);">Payment method</h3>
+      <div class="payment-choice-grid" style="margin-bottom:var(--space-5);">
+        <label class="payment-choice-card">
+          <input type="radio" name="payment_method" value="gcash" checked>
+          <h3>GCash</h3>
+        </label>
+        <label class="payment-choice-card">
+          <input type="radio" name="payment_method" value="maya">
+          <h3>Maya</h3>
+        </label>
+        <label class="payment-choice-card">
+          <input type="radio" name="payment_method" value="credit_card">
+          <h3>Credit Card</h3>
+        </label>
+        <label class="payment-choice-card">
+          <input type="radio" name="payment_method" value="debit_card">
+          <h3>Debit Card</h3>
+        </label>
+      </div>
+    {% endif %}
 
-      <div class="summary-card">
-        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Order summary</h2>
-        {% for item in cart_items %}
-          <div class="summary-row"><span>{{ item.product.name }} &times;{{ item.quantity }}</span><span>&#8369;{{ item.total_price|floatformat:2 }}</span></div>
-        {% endfor %}
-        <div class="summary-row"><span>Subtotal</span><span>&#8369;{{ subtotal|floatformat:2 }}</span></div>
-        <div class="summary-row total"><span>Total</span><span>&#8369;{{ total|floatformat:2 }}</span></div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--space-5);">
-          {% if payment_type == 'cash' %}Place order{% else %}Continue to payment{% endif %}
-        </button>
-        <p style="font-size:12px;color:var(--color-text-secondary);margin-top:var(--space-3);">By placing this order you agree to our terms and conditions.</p>
+    <h3 style="margin-bottom:var(--space-3);">Order notes (optional)</h3>
+    <textarea name="notes" rows="3" style="width:100%;padding:var(--space-3);margin-bottom:var(--space-5);" placeholder="Special instructions..."></textarea>
+
+    <div style="border-top:1px solid var(--color-border);padding-top:var(--space-4);margin-bottom:var(--space-5);">
+      {% for item in cart_items %}
+      <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-1);">
+        <span>{{ item.quantity }} &times; {{ item.product.name }}</span>
+        <span>&#8369;{{ item.total_price }}</span>
+      </div>
+      {% endfor %}
+      <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:var(--space-3);font-size:18px;">
+        <span>Total</span>
+        <span>&#8369;{{ total }}</span>
       </div>
     </div>
+
+    <button type="submit" class="btn btn-primary btn-block">
+      {% if payment_type == 'cash' %}Place Order{% else %}Continue to Payment{% endif %}
+    </button>
   </form>
-  {% else %}
-    <div class="empty-state">
-      <h2>Your cart is empty</h2>
-      <p>Add something to your cart before checking out.</p>
-      <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Continue shopping</a>
-    </div>
-  {% endif %}
 </div>
 {% endblock %}

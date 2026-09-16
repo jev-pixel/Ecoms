@@ -744,6 +744,92 @@ h1, h2, h3, h4 {
 .card-overlay-btn:hover { background: #fff; transform: scale(1.08); }
 .product-card-image { position: relative; }
 
+/* ==========================================================================
+   Append this block to static/css/premium-motor-theme.css — e.g. right
+   before the "Utilities" section at the bottom of the file.
+
+   Styles the two payment-choice cards on select_payment_method.html
+   (.payment-choice-grid / .payment-choice-card / .icon-circle). These
+   classes don't exist anywhere in the current theme file, so that page
+   was rendering as two plain, unstyled blocks with no selected-state
+   feedback — which is what was reading as "Cash/Online doesn't work"
+   even though the underlying form submission was fine.
+   ========================================================================== */
+
+.payment-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.payment-choice-card {
+  position: relative;
+  display: block;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  cursor: pointer;
+  background: var(--color-surface);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+}
+
+.payment-choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* The actual radio input — kept in the DOM for accessibility/form
+   semantics, positioned as a small checkmark-style control in the
+   corner rather than a default browser radio dot. */
+.payment-choice-card input[type="radio"] {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Selected-state highlight — this is the feedback that was missing */
+.payment-choice-card:has(input:checked) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(212, 63, 46, 0.14);
+}
+
+.payment-choice-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-2);
+  padding-right: var(--space-6); /* keep clear of the radio input */
+}
+
+.payment-choice-card p {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+}
+
+.icon-circle.accent {
+  background: var(--color-accent);
+}
+
+.icon-circle.info {
+  background: #2f6fed;
+}
 /* ---------- Icon circle (notifications, empty states) ---------- */
 .icon-circle {
   width: 44px;

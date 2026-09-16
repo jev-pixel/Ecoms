@@ -4,77 +4,55 @@
 {% block title %}Order {{ order.order_number }} — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
-<div class="container" style="padding-top:var(--space-7);padding-bottom:var(--space-9);max-width:800px;">
-  <a href="{% url 'shop:my_orders' %}" class="link-chevron" style="font-size:13px;">&larr; Back to orders</a>
+<div class="container" style="max-width:640px;padding-top:var(--space-7);padding-bottom:var(--space-9);">
+  <a href="{% url 'shop:my_orders' %}" style="color:var(--color-text-secondary);display:inline-block;margin-bottom:var(--space-4);">&larr; My orders</a>
 
-  <div style="display:flex;justify-content:space-between;align-items:baseline;margin:var(--space-4) 0 var(--space-6);flex-wrap:wrap;gap:var(--space-3);">
-    <h1 style="font-size:28px;">Order {{ order.order_number }}</h1>
-    {% if order.status == 'delivered' %}
-      <span class="badge badge-success">{{ order.get_status_display }}</span>
-    {% elif order.status == 'cancelled' or order.status == 'refunded' %}
-      <span class="badge badge-danger">{{ order.get_status_display }}</span>
-    {% elif order.status == 'shipped' %}
-      <span class="badge badge-accent">{{ order.get_status_display }}</span>
-    {% else %}
-      <span class="badge badge-warning">{{ order.get_status_display }}</span>
-    {% endif %}
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-5);">
+    <div>
+      <h1 style="font-size:24px;margin-bottom:var(--space-1);">{{ order.order_number }}</h1>
+      <p style="color:var(--color-text-secondary);">Placed {{ order.created_at|date:"M d, Y g:i A" }}</p>
+    </div>
+    <span class="badge" style="padding:4px 10px;border-radius:6px;font-size:13px;background:var(--color-surface-alt,#eee);">
+      {{ order.get_status_display }}
+    </span>
   </div>
 
   {% if qr_code %}
-    <div class="panel text-center" style="margin-bottom:var(--space-5);">
-      <h2 style="font-size:16px;margin-bottom:var(--space-4);">Show this at the counter</h2>
-      <img src="{{ qr_code }}" alt="Order QR code" style="width:180px;height:180px;margin:0 auto var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-border);">
-      <p style="font-size:13px;color:var(--color-text-secondary);margin:0;">
-        {% if order.payment_type == 'cash' and order.payment_status != 'paid' %}
-          Pay &#8369;{{ order.total_amount|floatformat:2 }} in cash when this is scanned.
-        {% else %}
-          Payment received — scan to move this order along.
-        {% endif %}
-      </p>
-    </div>
+  <div class="payment-choice-card" style="cursor:default;margin-bottom:var(--space-6);text-align:center;">
+    <img src="{{ qr_code }}" alt="Order QR code" style="width:180px;height:180px;margin:0 auto var(--space-3);display:block;">
+    <p style="margin:0;">Show this QR at the counter.</p>
+  </div>
   {% endif %}
 
-  <div class="panel" style="margin-bottom:var(--space-5);">
-    <h2 style="font-size:16px;margin-bottom:var(--space-4);">Items</h2>
-    {% for item in order.items.all %}
-      <div class="list-row">
-        <div>
-          <div class="list-row-title" style="font-weight:400;">{{ item.product_name }}</div>
-          <div class="list-row-meta">Qty {{ item.quantity }} &middot; &#8369;{{ item.unit_price|floatformat:2 }} each</div>
-        </div>
-        <div class="list-row-amount">&#8369;{{ item.total_price|floatformat:2 }}</div>
-      </div>
-    {% endfor %}
-    <div class="summary-row"><span>Subtotal</span><span>&#8369;{{ order.subtotal|floatformat:2 }}</span></div>
-    <div class="summary-row total"><span>Total</span><span>&#8369;{{ order.total_amount|floatformat:2 }}</span></div>
+  <h3 style="margin-bottom:var(--space-3);">Items</h3>
+  <table class="table" style="width:100%;border-collapse:collapse;margin-bottom:var(--space-5);">
+    <tbody>
+      {% for item in order.items.all %}
+      <tr style="border-bottom:1px solid var(--color-border);">
+        <td style="padding:var(--space-2) 0;">{{ item.quantity }} &times; {{ item.product_name }}</td>
+        <td style="padding:var(--space-2) 0;text-align:right;">&#8369;{{ item.total_price }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="display:flex;justify-content:space-between;font-weight:700;font-size:18px;margin-bottom:var(--space-6);">
+    <span>Total</span>
+    <span>&#8369;{{ order.total_amount }}</span>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);">
-    <div class="panel">
-      <h2 style="font-size:16px;margin-bottom:var(--space-3);">Shipping to</h2>
-      <p style="color:var(--color-text-secondary);font-size:14px;line-height:1.6;margin:0;">
-        {{ order.shipping_full_name }}<br>
-        {{ order.shipping_address }}<br>
-        {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}<br>
-        {{ order.shipping_country }}<br>
-        {{ order.shipping_phone }}
-      </p>
-    </div>
-    <div class="panel">
-      <h2 style="font-size:16px;margin-bottom:var(--space-3);">Payment</h2>
-      <p style="color:var(--color-text-secondary);font-size:14px;line-height:1.6;margin:0;">
-        {% if order.payment_type == 'cash' %}Cash at counter{% else %}Online{% endif %}<br>
-        Status: {{ order.get_payment_status_display }}<br>
-        {% if order.payment %}Method: {{ order.payment.get_payment_method_display }}{% endif %}
-      </p>
-    </div>
-  </div>
+  <h3 style="margin-bottom:var(--space-3);">Delivery / pickup details</h3>
+  <p style="color:var(--color-text-secondary);margin-bottom:var(--space-6);">
+    {{ order.shipping_full_name }} &middot; {{ order.shipping_phone }}<br>
+    {{ order.shipping_address }}, {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}
+  </p>
 
   {% if order.notes %}
-    <div class="panel" style="margin-top:var(--space-5);">
-      <h2 style="font-size:16px;margin-bottom:var(--space-3);">Order notes</h2>
-      <p style="color:var(--color-text-secondary);font-size:14px;margin:0;">{{ order.notes }}</p>
-    </div>
+  <p style="margin-bottom:var(--space-6);"><strong>Notes:</strong> {{ order.notes }}</p>
   {% endif %}
+
+  <p style="color:var(--color-text-secondary);">
+    Payment: {{ order.get_payment_type_display }} &middot; {{ order.get_payment_status_display }}
+  </p>
 </div>
 {% endblock %}
