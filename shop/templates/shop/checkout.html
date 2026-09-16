@@ -16,18 +16,10 @@
     {% csrf_token %}
     <div class="cart-layout">
       <div>
-        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Shipping address</h2>
+        <h2 style="font-size:18px;margin-bottom:var(--space-4);">Delivery / pickup details</h2>
         {% for addr in shipping_addresses %}
           <label class="radio-card">
             <input type="radio" name="shipping_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} required>
-            <span>{{ addr.full_name }} &mdash; {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}</span>
-          </label>
-        {% endfor %}
-
-        <h2 style="font-size:18px;margin:var(--space-6) 0 var(--space-4);">Billing address</h2>
-        {% for addr in billing_addresses %}
-          <label class="radio-card">
-            <input type="radio" name="billing_address" value="{{ addr.id }}" {% if forloop.first %}checked{% endif %} required>
             <span>{{ addr.full_name }} &mdash; {{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} {{ addr.postal_code }}</span>
           </label>
         {% endfor %}

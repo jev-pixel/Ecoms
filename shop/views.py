@@ -310,29 +310,22 @@ def checkout(request):
             messages.error(request, f'Not enough stock for {item.product.name}')
             return redirect('shop:view_cart')
     
-    # Get user addresses
-    shipping_addresses = Address.objects.filter(
-        user=request.user,
-        address_type__in=['shipping', 'both']
-    )
-    billing_addresses = Address.objects.filter(
-        user=request.user,
-        address_type__in=['billing', 'both']
-    )
-    
+    # Get user addresses. Billing address is intentionally NOT collected
+    # separately for now — asking for two addresses (shipping + billing)
+    # was extra friction for what's really a pickup/dine-in order. Any
+    # saved address works here; its details get mirrored into the
+    # Order's billing_* fields below so nothing downstream (admin, the
+    # Order model itself) needs to change.
+    shipping_addresses = Address.objects.filter(user=request.user)
+
     # Check if user has any addresses
     if not shipping_addresses.exists():
-        messages.warning(request, 'Please add a shipping address before checking out.')
-        return redirect('shop:manage_addresses')
-    
-    if not billing_addresses.exists():
-        messages.warning(request, 'Please add a billing address before checking out.')
+        messages.warning(request, 'Please add an address before checking out.')
         return redirect('shop:manage_addresses')
     
     if request.method == 'POST':
-        # Get address IDs from form
+        # Get address ID from form
         shipping_address_id = request.POST.get('shipping_address')
-        billing_address_id = request.POST.get('billing_address')
         notes = request.POST.get('notes', '')
 
         if payment_type == 'cash':
@@ -343,35 +336,23 @@ def checkout(request):
                 messages.error(request, 'Please select an online payment method')
                 return redirect('shop:checkout')
         
-        # Validate that addresses were selected
+        # Validate that an address was selected
         if not shipping_address_id:
-            messages.error(request, 'Please select a shipping address')
+            messages.error(request, 'Please select an address')
             return redirect('shop:checkout')
         
-        if not billing_address_id:
-            messages.error(request, 'Please select a billing address')
-            return redirect('shop:checkout')
-        
-        # Try to get the addresses
+        # Try to get the address
         try:
             shipping_address = Address.objects.get(
-                id=shipping_address_id, 
+                id=shipping_address_id,
                 user=request.user,
-                address_type__in=['shipping', 'both']
             )
         except Address.DoesNotExist:
-            messages.error(request, 'Invalid shipping address selected')
+            messages.error(request, 'Invalid address selected')
             return redirect('shop:checkout')
-        
-        try:
-            billing_address = Address.objects.get(
-                id=billing_address_id, 
-                user=request.user,
-                address_type__in=['billing', 'both']
-            )
-        except Address.DoesNotExist:
-            messages.error(request, 'Invalid billing address selected')
-            return redirect('shop:checkout')
+
+        # Billing mirrors shipping — see note above.
+        billing_address = shipping_address
         
         # Calculate totals
         subtotal = cart.subtotal
@@ -454,7 +435,6 @@ def checkout(request):
         'shipping_cost': shipping_cost,
         'total': total,
         'shipping_addresses': shipping_addresses,
-        'billing_addresses': billing_addresses,
         'payment_type': payment_type,
     }
     return render(request, 'shop/checkout.html', context)
