@@ -37,7 +37,7 @@ urlpatterns = [
     path('cashier/scan/', cashier_views.scan, name='cashier_scan'),
     path('cashier/order/<uuid:qr_token>/', cashier_views.order_lookup, name='cashier_order_lookup'),
     path('cashier/order/<uuid:qr_token>/punch/', cashier_views.punch_order, name='cashier_punch_order'),
-    
+
     # ==================== USER PROFILE ====================
     path('profile/', views.profile, name='profile'),
     path('addresses/', views.manage_addresses, name='manage_addresses'),
@@ -47,12 +47,12 @@ urlpatterns = [
     path('wishlist/', views.wishlist, name='wishlist'),
     path('wishlist/add/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
     path('wishlist/remove/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
-    path('wishlist/clear/', views.clear_wishlist, name='clear_wishlist'),
+    path('wishlist/clear/', views.clear_wishlist, name='clear_wishlist'),  # NEW
     
     # ==================== NOTIFICATIONS ====================
-    path('notifications/', views.notifications, name='notifications'),
-    path('notifications/mark-read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
-    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/', views.notifications, name='notifications'),  # NEW
+    path('notifications/mark-read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),  # NEW
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),  # NEW
     
     # ==================== AUTHENTICATION ====================
     path('login/', auth_views.LoginView.as_view(

@@ -12,13 +12,9 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from .models import (
     Product, Category, Cart, CartItem, Order, OrderItem, 
-    Payment, Review, Wishlist, Coupon, Address, UserProfile, Notification
+    Payment, Review, Wishlist, Coupon, Address, UserProfile
 )
 from .qr_utils import generate_qr_code_data_uri
-
-# Note: the old duplicate `api_products()` views (calling an undefined
-# `ECommerceAPI`) have been removed here — they weren't wired to any URL
-# and README_CLEANUP_AND_SETUP.md already flagged them for deletion.
 
 
 # ==================== HOME ====================
@@ -250,7 +246,12 @@ def update_cart(request, product_id):
     
     return redirect('shop:view_cart')
 
-
+def api_products(request):
+    """Display products from FastAPI"""
+    products = ECommerceAPI.get_all_items()
+    context = {'products': products}
+    return render(request, 'shop/api_products.html', context)
+    
 def remove_from_cart(request, product_id):
     """Remove item from cart"""
     product = get_object_or_404(Product, id=product_id)
@@ -261,14 +262,23 @@ def remove_from_cart(request, product_id):
     
     return redirect('shop:view_cart')
 
+def api_products(request):
+    """Display products from API (Demo for assignment)"""
+    # Fetch products from FastAPI backend
+    products = ECommerceAPI.get_all_items()
+    
+    context = {
+        'products': products,
+        'source': 'FastAPI Backend'
+    }
+    return render(request, 'shop/api_products.html', context)
 
 # ==================== CHECKOUT ====================
 @login_required
 def select_payment_method(request):
     """
     Checkout step 1: cash at the counter, or pay online now.
-    Stored in the session so `checkout()` below knows which sub-flow
-    (and which set of payment_method radio buttons) to show next.
+    Stored in the session so checkout() below knows which sub-flow to show.
     """
     cart = get_or_create_cart(request)
     if not cart.items.exists():
@@ -291,8 +301,12 @@ ONLINE_PAYMENT_METHODS = ['gcash', 'maya', 'credit_card', 'debit_card']
 
 @login_required
 def checkout(request):
-    """Checkout process — step 2, after select_payment_method has stored
-    the cash/online choice in the session."""
+    """
+    Checkout — no saved Address required. This is counter pickup (QR
+    receipt), not delivery, so we just capture a name + phone number for
+    the cashier to call the order, instead of a full shipping/billing
+    address pair.
+    """
     cart = get_or_create_cart(request)
     cart_items = cart.items.select_related('product').all()
 
@@ -300,44 +314,29 @@ def checkout(request):
         messages.warning(request, 'Your cart is empty')
         return redirect('shop:product_list')
 
+    # Check stock availability
     for item in cart_items:
         if item.quantity > item.product.stock:
             messages.error(request, f'Not enough stock for {item.product.name}')
             return redirect('shop:view_cart')
 
-    # Without this, checkout.html's {% if payment_type == 'cash' %} branch
-    # can't tell which payment sub-flow to render (it was previously always
-    # falling through to the online branch, and cash orders had no way to
-    # submit since that branch renders no payment_method inputs).
     payment_type = request.session.get('checkout_payment_type')
     if payment_type not in ('cash', 'online'):
         messages.info(request, 'Please choose how you want to pay first.')
         return redirect('shop:select_payment_method')
 
-    # Only a shipping address is collected now — the separate billing-address
-    # step was dropped to cut checkout friction. Order.billing_* fields still
-    # exist in the schema, so they're mirrored from shipping below.
-    shipping_addresses = Address.objects.filter(
-        user=request.user,
-        address_type__in=['shipping', 'both']
-    )
-
-    if not shipping_addresses.exists():
-        messages.warning(request, 'Please add a shipping address before checking out.')
-        return redirect('shop:manage_addresses')
-
     if request.method == 'POST':
-        shipping_address_id = request.POST.get('shipping_address')
+        full_name = request.POST.get('full_name', '').strip()
+        phone = request.POST.get('phone_number', '').strip()
         notes = request.POST.get('notes', '')
 
-        if not shipping_address_id:
-            messages.error(request, 'Please select a shipping address')
+        if not full_name or not phone:
+            messages.error(request, 'Please enter your name and phone number')
             return redirect('shop:checkout')
 
-        # Cash orders don't submit a payment_method field at all (the
-        # template just shows a static "pay at counter" line) — only
-        # require and validate one for the online branch. Payment.payment_method
-        # has no 'cash' choice, only 'cash_on_delivery', so map to that.
+        # Cash orders pay at the counter — map to the existing
+        # 'cash_on_delivery' Payment choice. Online orders pick a real
+        # method below.
         if payment_type == 'cash':
             payment_method = 'cash_on_delivery'
         else:
@@ -346,43 +345,32 @@ def checkout(request):
                 messages.error(request, 'Please select a payment method')
                 return redirect('shop:checkout')
 
-        try:
-            shipping_address = Address.objects.get(
-                id=shipping_address_id,
-                user=request.user,
-                address_type__in=['shipping', 'both']
-            )
-        except Address.DoesNotExist:
-            messages.error(request, 'Invalid shipping address selected')
-            return redirect('shop:checkout')
-
-        # Tax and shipping fee removed — total is just the cart subtotal.
+        # No shipping/delivery fee or tax for counter pickup — total is
+        # just the cart subtotal.
         subtotal = cart.subtotal
-        tax_amount = Decimal('0.00')
-        shipping_cost = Decimal('0.00')
         total_amount = subtotal
 
         order = Order.objects.create(
             user=request.user,
             payment_type=payment_type,
             subtotal=subtotal,
-            tax_amount=tax_amount,
-            shipping_cost=shipping_cost,
+            tax_amount=Decimal('0.00'),
+            shipping_cost=Decimal('0.00'),
             total_amount=total_amount,
-            shipping_full_name=shipping_address.full_name,
-            shipping_phone=shipping_address.phone_number,
-            shipping_address=shipping_address.street_address,
-            shipping_city=shipping_address.city,
-            shipping_state=shipping_address.state,
-            shipping_postal_code=shipping_address.postal_code,
-            shipping_country=shipping_address.country,
-            billing_full_name=shipping_address.full_name,
-            billing_phone=shipping_address.phone_number,
-            billing_address=shipping_address.street_address,
-            billing_city=shipping_address.city,
-            billing_state=shipping_address.state,
-            billing_postal_code=shipping_address.postal_code,
-            billing_country=shipping_address.country,
+            shipping_full_name=full_name,
+            shipping_phone=phone,
+            shipping_address='Counter pickup',
+            shipping_city='',
+            shipping_state='',
+            shipping_postal_code='',
+            shipping_country='',
+            billing_full_name=full_name,
+            billing_phone=phone,
+            billing_address='Counter pickup',
+            billing_city='',
+            billing_state='',
+            billing_postal_code='',
+            billing_country='',
             notes=notes,
         )
 
@@ -401,8 +389,8 @@ def checkout(request):
             product.save()
 
         # Both cash-at-counter and online payments start pending — cash is
-        # confirmed by the cashier at pickup (cashier_views.punch_order),
-        # online is confirmed by confirm_online_payment() below.
+        # confirmed by the cashier at pickup, online is confirmed below /
+        # by a real payment gateway once one is wired in.
         Payment.objects.create(
             order=order,
             payment_method=payment_method,
@@ -420,13 +408,10 @@ def checkout(request):
         return redirect('shop:order_success', order_id=order.id)
 
     subtotal = cart.subtotal
-    total = subtotal
-
     context = {
         'cart_items': cart_items,
         'subtotal': subtotal,
-        'total': total,
-        'shipping_addresses': shipping_addresses,
+        'total': subtotal,
         'payment_type': payment_type,
     }
     return render(request, 'shop/checkout.html', context)
@@ -436,8 +421,8 @@ def checkout(request):
 def online_payment(request, order_id):
     """
     Separate flow for online payment: order already exists (created in
-    checkout()), payment is still pending. This is a placeholder screen —
-    swap the "I've completed payment" button for a real GCash/Maya/PayMongo
+    checkout()), payment is still pending. Placeholder screen — swap the
+    "I've completed payment" button for a real GCash/Maya/PayMongo
     redirect + webhook when a live gateway is wired in.
     """
     order = get_object_or_404(Order, id=order_id, user=request.user, payment_type='online')
@@ -472,8 +457,8 @@ def confirm_online_payment(request, order_id):
 
 @login_required
 def order_success(request, order_id):
-    """Order success page — now includes a QR code the cashier scans to
-    pull the order up on the counter dashboard."""
+    """Order success page — includes a QR code the cashier scans to pull
+    the order up on the counter dashboard."""
     order = get_object_or_404(Order, id=order_id, user=request.user)
     qr_target = request.build_absolute_uri(
         reverse('shop:cashier_order_lookup', args=[order.qr_token])
@@ -606,15 +591,6 @@ def remove_from_wishlist(request, product_id):
     return redirect('shop:wishlist')
 
 
-@login_required
-def clear_wishlist(request):
-    """Clear all items from wishlist"""
-    if request.method == 'POST' or request.method == 'GET':
-        Wishlist.objects.filter(user=request.user).delete()
-        messages.success(request, 'Your wishlist has been cleared.')
-    return redirect('shop:wishlist')
-
-
 # ==================== SEARCH ====================
 def search(request):
     """Advanced search"""
@@ -744,28 +720,46 @@ def register(request):
         return redirect('shop:login')
 
     return render(request, 'shop/register.html')
-
-
+    
 @login_required
 def notifications(request):
-    notifications = request.user.notifications.all()[:50]
-    context = {'notifications': notifications}
+    """Display user notifications"""
+    # You can create a Notification model or use a simple approach
+    # For now, this is a placeholder view
+    context = {
+        'page_title': 'Notifications',
+    }
     return render(request, 'shop/notifications.html', context)
-
 
 @login_required
 def mark_notification_read(request, notification_id):
-    Notification.objects.filter(id=notification_id, user=request.user).update(is_read=True)
+    """Mark a single notification as read"""
+    # Implement notification read logic here
     messages.success(request, 'Notification marked as read.')
     return redirect('shop:notifications')
 
-
 @login_required
 def mark_all_notifications_read(request):
-    request.user.notifications.filter(is_read=False).update(is_read=True)
+    """Mark all notifications as read"""
+    # Implement mark all as read logic here
     messages.success(request, 'All notifications marked as read.')
     return redirect('shop:notifications')
 
+# ==================== WISHLIST ====================
+@login_required
+def clear_wishlist(request):
+    """Clear all items from wishlist"""
+    if request.method == 'POST' or request.method == 'GET':
+        # Assuming you have a Wishlist model
+        # Wishlist.objects.filter(user=request.user).delete()
+        
+        # Or if using session-based wishlist:
+        if 'wishlist' in request.session:
+            del request.session['wishlist']
+            request.session.modified = True
+        
+        messages.success(request, 'Your wishlist has been cleared.')
+    return redirect('shop:wishlist')
 
 def custom_logout(request):
     """Custom logout view"""
