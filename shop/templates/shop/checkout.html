@@ -14,15 +14,16 @@
   <form method="POST">
     {% csrf_token %}
 
-    <h3 style="margin-bottom:var(--space-3);">Shipping / pickup details</h3>
-    {% for address in shipping_addresses %}
-    <label class="payment-choice-card" style="display:block;text-align:left;margin-bottom:var(--space-2);">
-      <input type="radio" name="shipping_address" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
-      <strong>{{ address.full_name }}</strong> &middot; {{ address.phone_number }}<br>
-      <span style="color:var(--color-text-secondary);">{{ address.street_address }}, {{ address.city }}, {{ address.state }} {{ address.postal_code }}</span>
+    <h3 style="margin-bottom:var(--space-3);">Who's picking this up?</h3>
+    <p style="color:var(--color-text-secondary);margin-bottom:var(--space-3);">No delivery address needed — just your name and number so we can call your order.</p>
+    <label style="display:block;margin-bottom:var(--space-3);">
+      <span style="display:block;font-weight:600;margin-bottom:var(--space-1);">Full name</span>
+      <input type="text" name="full_name" value="{{ request.user.get_full_name|default:request.user.username }}" style="width:100%;padding:var(--space-3);" required>
     </label>
-    {% endfor %}
-    <a href="{% url 'shop:manage_addresses' %}" style="display:inline-block;margin-bottom:var(--space-5);">+ Add another address</a>
+    <label style="display:block;margin-bottom:var(--space-5);">
+      <span style="display:block;font-weight:600;margin-bottom:var(--space-1);">Phone number</span>
+      <input type="tel" name="phone_number" value="{{ request.user.profile.phone_number }}" style="width:100%;padding:var(--space-3);" required>
+    </label>
 
     {% if payment_type == 'cash' %}
       <div class="payment-choice-card" style="cursor:default;text-align:left;margin-bottom:var(--space-5);">
