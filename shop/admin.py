@@ -60,11 +60,17 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'user', 'status', 'payment_status', 'total_amount', 'created_at')
-    list_filter = ('status', 'payment_status', 'created_at')
+    list_display = (
+        'order_number', 'user', 'payment_type', 'status', 'payment_status',
+        'total_amount', 'confirmed_by', 'created_at',
+    )
+    list_filter = ('status', 'payment_status', 'payment_type', 'created_at')
     list_editable = ('status', 'payment_status')
     search_fields = ('order_number', 'user__username', 'user__email')
-    readonly_fields = ('order_number', 'subtotal', 'tax_amount', 'total_amount', 'created_at', 'updated_at')
+    readonly_fields = (
+        'order_number', 'qr_token', 'subtotal', 'tax_amount', 'total_amount',
+        'confirmed_by', 'confirmed_at', 'created_at', 'updated_at',
+    )
     inlines = [OrderItemInline]
     date_hierarchy = 'created_at'
 

@@ -235,11 +235,32 @@ class Order(models.Model):
         ('failed', 'Failed'),
         ('refunded', 'Refunded'),
     ]
+
+    PAYMENT_TYPE_CHOICES = [
+        ('cash', 'Cash at Counter'),
+        ('online', 'Online Payment'),
+    ]
     
     order_number = models.CharField(max_length=50, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+
+    # Cash at the counter vs GCash/Maya/card paid up front — drives which
+    # checkout sub-flow the customer goes through and how the cashier
+    # dashboard treats the order (collect cash vs just confirm & prep).
+    payment_type = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES, default='cash')
+
+    # Unique, unguessable identifier encoded into the customer's QR receipt.
+    # Deliberately separate from order_number so the printed/shown code
+    # can't be used to enumerate other orders.
+    qr_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    # Which staff member scanned/punched this order at the counter.
+    confirmed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='punched_orders'
+    )
     
     # Pricing
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)

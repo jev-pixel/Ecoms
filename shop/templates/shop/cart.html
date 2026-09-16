@@ -1,7 +1,7 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Cart — Daboss Motor Shop{% endblock %}
+{% block title %}Cart — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
 <div class="container" style="padding-top: var(--space-7);">
@@ -49,9 +49,9 @@
       <div id="couponMessage" style="font-size:13px;margin-bottom:var(--space-4);"></div>
 
       {% if request.user.is_authenticated %}
-        <a href="{% url 'shop:checkout' %}" class="btn btn-primary btn-block">Proceed to checkout</a>
+        <a href="{% url 'shop:select_payment_method' %}" class="btn btn-primary btn-block">Proceed to checkout</a>
       {% else %}
-        <a href="{% url 'shop:login' %}?next={% url 'shop:checkout' %}" class="btn btn-primary btn-block">Sign in to checkout</a>
+        <a href="{% url 'shop:login' %}?next={% url 'shop:select_payment_method' %}" class="btn btn-primary btn-block">Sign in to checkout</a>
       {% endif %}
     </div>
   </div>

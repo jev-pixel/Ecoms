@@ -1,11 +1,15 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Checkout — Serotonin{% endblock %}
+{% block title %}Checkout — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
 <div class="container" style="padding-top: var(--space-7);">
-  <h1 style="font-size:32px;margin-bottom:var(--space-6);">Checkout</h1>
+  <h1 style="font-size:32px;margin-bottom:var(--space-2);">Checkout</h1>
+  <p style="color:var(--color-text-secondary);margin-bottom:var(--space-6);">
+    Paying {% if payment_type == 'cash' %}with cash at the counter{% else %}online{% endif %} &middot;
+    <a href="{% url 'shop:select_payment_method' %}" class="link-chevron" style="font-size:13px;">change</a>
+  </p>
 
   {% if cart_items %}
   <form method="POST">
@@ -33,11 +37,16 @@
         </div>
 
         <h2 style="font-size:18px;margin-bottom:var(--space-4);">Payment method</h2>
-        <label class="radio-card"><input type="radio" name="payment_method" value="cash_on_delivery" checked required> Cash on delivery</label>
-        <label class="radio-card"><input type="radio" name="payment_method" value="gcash" required> GCash</label>
-        <label class="radio-card"><input type="radio" name="payment_method" value="maya" required> Maya</label>
-        <label class="radio-card"><input type="radio" name="payment_method" value="credit_card" required> Credit card</label>
-        <label class="radio-card"><input type="radio" name="payment_method" value="debit_card" required> Debit card</label>
+        {% if payment_type == 'cash' %}
+          <div class="radio-card" style="cursor:default;">
+            <span>&#8369; Cash — pay <strong>&#8369;{{ total|floatformat:2 }}</strong> at the counter</span>
+          </div>
+        {% else %}
+          <label class="radio-card"><input type="radio" name="payment_method" value="gcash" checked required> GCash</label>
+          <label class="radio-card"><input type="radio" name="payment_method" value="maya" required> Maya</label>
+          <label class="radio-card"><input type="radio" name="payment_method" value="credit_card" required> Credit card</label>
+          <label class="radio-card"><input type="radio" name="payment_method" value="debit_card" required> Debit card</label>
+        {% endif %}
 
         <div class="field" style="margin-top:var(--space-5);">
           <label for="notes">Order notes (optional)</label>
@@ -54,7 +63,9 @@
         <div class="summary-row"><span>Tax</span><span>&#8369;{{ tax|floatformat:2 }}</span></div>
         <div class="summary-row"><span>Shipping</span><span>&#8369;{{ shipping_cost|floatformat:2 }}</span></div>
         <div class="summary-row total"><span>Total</span><span>&#8369;{{ total|floatformat:2 }}</span></div>
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--space-5);">Place order</button>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:var(--space-5);">
+          {% if payment_type == 'cash' %}Place order{% else %}Continue to payment{% endif %}
+        </button>
         <p style="font-size:12px;color:var(--color-text-secondary);margin-top:var(--space-3);">By placing this order you agree to our terms and conditions.</p>
       </div>
     </div>

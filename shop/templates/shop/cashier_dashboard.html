@@ -1,0 +1,48 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Cashier Dashboard — Daboss Fast Food Resto{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:var(--space-7);padding-bottom:var(--space-9);">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-6);flex-wrap:wrap;gap:var(--space-3);">
+    <div>
+      <h1 style="font-size:28px;">Cashier dashboard</h1>
+      <p style="color:var(--color-text-secondary);margin-top:var(--space-1);">
+        {{ cash_pending_count }} cash order{{ cash_pending_count|pluralize }} waiting to be collected &middot;
+        {{ online_ready_count }} paid order{{ online_ready_count|pluralize }} ready to start
+      </p>
+    </div>
+    <a href="{% url 'shop:cashier_scan' %}" class="btn btn-primary">Scan a QR code</a>
+  </div>
+
+  <div class="filter-pills" style="margin-bottom:var(--space-5);">
+    <a href="?status=active" class="filter-pill {% if status_filter == 'active' %}active{% endif %}">Active</a>
+    <a href="?status=pending" class="filter-pill {% if status_filter == 'pending' %}active{% endif %}">Awaiting cashier</a>
+    <a href="?status=confirmed" class="filter-pill {% if status_filter == 'confirmed' %}active{% endif %}">Confirmed</a>
+    <a href="?status=processing" class="filter-pill {% if status_filter == 'processing' %}active{% endif %}">Preparing</a>
+    <a href="?status=delivered" class="filter-pill {% if status_filter == 'delivered' %}active{% endif %}">Served</a>
+  </div>
+
+  <div class="panel" style="padding:0 var(--space-6);">
+    {% for order in orders %}
+      <a href="{% url 'shop:cashier_order_lookup' order.qr_token %}" class="list-row">
+        <div>
+          <div class="list-row-title">{{ order.order_number }} &middot; {{ order.user.username }}</div>
+          <div class="list-row-meta">
+            {{ order.items.count }} item{{ order.items.count|pluralize }} &middot;
+            {% if order.payment_type == 'cash' %}Cash{% else %}Online{% endif %} &middot;
+            {{ order.get_payment_status_display }}
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="list-row-amount">&#8369;{{ order.total_amount|floatformat:2 }}</div>
+          <span class="badge badge-warning">{{ order.get_status_display }}</span>
+        </div>
+      </a>
+    {% empty %}
+      <p style="padding:var(--space-6) 0;color:var(--color-text-secondary);">No orders in this queue.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

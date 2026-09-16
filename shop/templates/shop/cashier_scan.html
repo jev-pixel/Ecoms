@@ -1,0 +1,55 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Scan order — Cashier{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:480px;padding-top:var(--space-7);padding-bottom:var(--space-9);">
+  <a href="{% url 'shop:cashier_dashboard' %}" class="link-chevron" style="font-size:13px;">&larr; Back to dashboard</a>
+  <h1 style="font-size:24px;margin:var(--space-4) 0 var(--space-5);">Scan a customer's QR code</h1>
+
+  <div id="qr-reader" style="width:100%;border-radius:var(--radius-md);overflow:hidden;margin-bottom:var(--space-5);"></div>
+  <p id="qr-reader-fallback-msg" style="display:none;padding:var(--space-5);color:var(--color-text-secondary);text-align:center;">
+    Camera not available — use manual entry below.
+  </p>
+
+  <div class="auth-divider">or enter it manually</div>
+
+  <form method="POST" action="{% url 'shop:cashier_scan' %}">
+    {% csrf_token %}
+    <div class="field">
+      <input type="text" name="code" placeholder="Order number, e.g. ORD-52747734" required
+             style="width:100%;font-size:15px;padding:12px 14px;border:1px solid var(--color-border);border-radius:var(--radius-sm);">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Look up order</button>
+  </form>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  function extractOrderToken(decodedText) {
+    // The QR encodes a full URL like /shop/cashier/order/<token>/ —
+    // pull the trailing token out so this also works if someone scans it
+    // with a plain camera app that just opens the link.
+    var parts = decodedText.split('/').filter(Boolean);
+    return parts[parts.length - 1];
+  }
+
+  var scanner = new Html5Qrcode("qr-reader");
+  Html5Qrcode.getCameras().then(function (cameras) {
+    if (!cameras || !cameras.length) throw new Error('no camera');
+    scanner.start(
+      cameras[0].id,
+      { fps: 10, qrbox: 240 },
+      function (decodedText) {
+        scanner.stop().then(function () {
+          window.location.href = '/shop/cashier/order/' + extractOrderToken(decodedText) + '/';
+        });
+      }
+    );
+  }).catch(function () {
+    document.getElementById('qr-reader').style.display = 'none';
+    document.getElementById('qr-reader-fallback-msg').style.display = 'block';
+  });
+</script>
+{% endblock %}

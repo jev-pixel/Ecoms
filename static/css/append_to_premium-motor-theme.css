@@ -1,0 +1,46 @@
+/* ==========================================================================
+   Cashier / QR checkout additions — append these to the END of
+   static/css/premium-motor-theme.css (don't replace the whole file)
+   ========================================================================== */
+
+/* ---------- Payment method chooser (select_payment_method.html) ---------- */
+.payment-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+.payment-choice-card {
+  position: relative;
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  cursor: pointer;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-shelf);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.payment-choice-card input {
+  position: absolute;
+  opacity: 0;
+}
+.payment-choice-card:has(input:checked) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(232, 163, 61, 0.25);
+}
+.payment-choice-card h3 { font-size: 16px; margin-bottom: var(--space-2); }
+.payment-choice-card p { font-size: 13px; color: var(--color-text-secondary); margin: 0; }
+
+@media (max-width: 560px) {
+  .payment-choice-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Simple alert-info box (used on online_payment.html) ---------- */
+.alert-info {
+  background: #FDF0DA;
+  color: #A15C00;
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.5;
+}

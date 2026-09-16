@@ -1,7 +1,7 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Order {{ order.order_number }} — Daboss Motor Shop{% endblock %}
+{% block title %}Order {{ order.order_number }} — Daboss Fast Food Resto{% endblock %}
 
 {% block content %}
 <div class="container" style="padding-top:var(--space-7);padding-bottom:var(--space-9);max-width:800px;">
@@ -19,6 +19,20 @@
       <span class="badge badge-warning">{{ order.get_status_display }}</span>
     {% endif %}
   </div>
+
+  {% if qr_code %}
+    <div class="panel text-center" style="margin-bottom:var(--space-5);">
+      <h2 style="font-size:16px;margin-bottom:var(--space-4);">Show this at the counter</h2>
+      <img src="{{ qr_code }}" alt="Order QR code" style="width:180px;height:180px;margin:0 auto var(--space-3);border-radius:var(--radius-md);border:1px solid var(--color-border);">
+      <p style="font-size:13px;color:var(--color-text-secondary);margin:0;">
+        {% if order.payment_type == 'cash' and order.payment_status != 'paid' %}
+          Pay &#8369;{{ order.total_amount|floatformat:2 }} in cash when this is scanned.
+        {% else %}
+          Payment received — scan to move this order along.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
 
   <div class="panel" style="margin-bottom:var(--space-5);">
     <h2 style="font-size:16px;margin-bottom:var(--space-4);">Items</h2>
@@ -51,6 +65,7 @@
     <div class="panel">
       <h2 style="font-size:16px;margin-bottom:var(--space-3);">Payment</h2>
       <p style="color:var(--color-text-secondary);font-size:14px;line-height:1.6;margin:0;">
+        {% if order.payment_type == 'cash' %}Cash at counter{% else %}Online{% endif %}<br>
         Status: {{ order.get_payment_status_display }}<br>
         {% if order.payment %}Method: {{ order.payment.get_payment_method_display }}{% endif %}
       </p>

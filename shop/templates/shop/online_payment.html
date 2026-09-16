@@ -1,0 +1,25 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Complete payment — Daboss Fast Food Resto{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:480px;padding-top:var(--space-7);padding-bottom:var(--space-9);">
+  <div class="panel text-center">
+    <h1 style="font-size:24px;margin-bottom:var(--space-2);">Pay with {{ order.payment.get_payment_method_display }}</h1>
+    <p style="color:var(--color-text-secondary);margin-bottom:var(--space-5);">Order {{ order.order_number }}</p>
+    <div style="font-size:36px;font-weight:700;margin-bottom:var(--space-6);">&#8369;{{ order.total_amount|floatformat:2 }}</div>
+
+    <div class="alert alert-info" style="text-align:left;">
+      This is a placeholder payment step. Wire in a real GCash/Maya/PayMongo
+      redirect + webhook here — for now, tap below once you've sent payment
+      to simulate confirmation.
+    </div>
+
+    <form method="POST" action="{% url 'shop:confirm_online_payment' order.id %}" style="margin-top:var(--space-5);">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary btn-block">I've completed payment</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
