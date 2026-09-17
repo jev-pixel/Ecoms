@@ -4,8 +4,8 @@ QR code helper for the cashier flow.
 
 Generates the QR as an in-memory PNG and returns it as a base64 data URI,
 so it can go straight into <img src="..."> with no MEDIA_ROOT write and no
-extra request — important since this app runs on Vercel/Render where the
-filesystem is ephemeral (see storage_backends.py / DEPLOYMENT.md).
+extra request — important since this app runs on hosts where the
+filesystem is ephemeral (Vercel, Railway).
 """
 import base64
 from io import BytesIO

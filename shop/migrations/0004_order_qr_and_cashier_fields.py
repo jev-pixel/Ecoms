@@ -1,4 +1,11 @@
-# Generated for the cashier / QR-code checkout feature
+# Adds the cashier/QR-checkout fields that shop/models.py's Order class
+# now declares: payment_type, qr_token, confirmed_by.
+#
+# Before applying: run `python manage.py makemigrations shop --check --dry-run`
+# first. If it reports "No changes detected," this file is correct as-is.
+# If Django wants to generate its own migration for these same fields
+# instead, use that one and delete this file — don't apply both.
+
 import uuid
 
 import django.db.models.deletion
@@ -16,17 +23,17 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='order',
-            name='qr_token',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
-        ),
-        migrations.AddField(
-            model_name='order',
             name='payment_type',
             field=models.CharField(
                 choices=[('cash', 'Cash at Counter'), ('online', 'Online Payment')],
                 default='cash',
                 max_length=10,
             ),
+        ),
+        migrations.AddField(
+            model_name='order',
+            name='qr_token',
+            field=models.UUIDField(default=uuid.uuid4, editable=False, unique=True),
         ),
         migrations.AddField(
             model_name='order',

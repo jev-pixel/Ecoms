@@ -142,13 +142,12 @@ class Cart(models.Model):
     
     @property
     def tax_amount(self):
-        # Tax removed from the order process for now — kept as a zero-value
-        # property so templates/serializers that still reference it don't break.
+        # Tax removed for counter pickup — kept as a zero-value property so
+        # any template/serializer still referencing it doesn't break.
         return Decimal('0.00')
-
+    
     @property
     def total(self):
-        # No tax or shipping fee added — total is just the cart subtotal.
         return self.subtotal
 
 
@@ -237,12 +236,12 @@ class Order(models.Model):
         ('failed', 'Failed'),
         ('refunded', 'Refunded'),
     ]
-
+    
     PAYMENT_TYPE_CHOICES = [
         ('cash', 'Cash at Counter'),
         ('online', 'Online Payment'),
     ]
-    
+
     order_number = models.CharField(max_length=50, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
