@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 from .models import (
     Product, Category, Cart, CartItem, Order, OrderItem, 
-    Payment, Review, Wishlist, Coupon, Address, UserProfile
+    Payment, Review, Wishlist, Coupon, Address, UserProfile, Notification
 )
 from .qr_utils import generate_qr_code_data_uri
 
@@ -724,24 +724,21 @@ def register(request):
 @login_required
 def notifications(request):
     """Display user notifications"""
-    # You can create a Notification model or use a simple approach
-    # For now, this is a placeholder view
-    context = {
-        'page_title': 'Notifications',
-    }
+    notifications = request.user.notifications.all()[:50]
+    context = {'notifications': notifications}
     return render(request, 'shop/notifications.html', context)
 
 @login_required
 def mark_notification_read(request, notification_id):
     """Mark a single notification as read"""
-    # Implement notification read logic here
+    Notification.objects.filter(id=notification_id, user=request.user).update(is_read=True)
     messages.success(request, 'Notification marked as read.')
     return redirect('shop:notifications')
 
 @login_required
 def mark_all_notifications_read(request):
     """Mark all notifications as read"""
-    # Implement mark all as read logic here
+    request.user.notifications.filter(is_read=False).update(is_read=True)
     messages.success(request, 'All notifications marked as read.')
     return redirect('shop:notifications')
 

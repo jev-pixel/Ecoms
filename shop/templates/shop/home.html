@@ -1,18 +1,17 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 
-{% block title %}Daboss Fast Food Resto{% endblock %}
+{% block title %}DoyBand Fast Food Resto{% endblock %}
 
 {% block content %}
 
-<section class="hero">
+<section class="hero hero-dark">
+  <span class="hero-eyebrow">Fresh &middot; Fast &middot; Made to order</span>
   <h1>Made fresh. Served fast.</h1>
   <p>Burgers, fries, drinks, and combo meals — hand-picked for flavor and quality, not just a menu board.</p>
   <div class="hero-actions">
-    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Order now</a>
-    {% if categories %}
-      <a href="#categories" class="btn btn-secondary">Browse the menu</a>
-    {% endif %}
+    <a href="{% url 'shop:select_payment_method' %}" class="btn btn-primary">Order now</a>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-secondary">Browse the menu</a>
   </div>
 </section>
 
@@ -58,7 +57,7 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>Today's deals</h2>
+      <h2>On special</h2>
     </div>
     <div class="product-grid">
       {% for product in sale_products %}
@@ -73,7 +72,7 @@
 <section class="section">
   <div class="container">
     <div class="section-header">
-      <h2>New on the menu</h2>
+      <h2>Fresh off the menu</h2>
     </div>
     <div class="product-grid">
       {% for product in latest_products %}
@@ -87,7 +86,7 @@
 {% if not featured_products and not latest_products and not categories %}
 <section class="empty-state">
   <h2>Nothing here yet</h2>
-  <p>Products and categories will appear here once they're added from the admin panel.</p>
+  <p>Menu items and categories will appear here once they're added from the admin panel.</p>
 </section>
 {% endif %}
 
